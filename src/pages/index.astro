@@ -1,0 +1,158 @@
+---
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>Tour de Lakewood</title>
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap"
+		/>
+	</head>
+	<body>
+		<main class="coming-soon">
+			<section class="coming-hero">
+				<img
+					src="/tour-de-lakewood.svg"
+					alt="Tour de Lakewood"
+					class="coming-logo"
+					loading="eager"
+					decoding="async"
+				/>
+				<p class="coming-eyebrow">Community ride • Lakewood, Ohio</p>
+				<h1>Tour de Lakewood is rolling out on July 11th, 2026.</h1>
+				<p class="coming-text">
+					Join us for an epic 12-hour cycling adventure through Lakewood! Whether you ride for 1 hour or the full 12, come explore our city on two wheels.
+				</p>
+				<div class="coming-pill">
+					<span class="dot"></span>
+					<span>Site in progress</span>
+				</div>
+			</section>
+		</main>
+	</body>
+</html>
+
+<style>
+	:root {
+		color-scheme: light;
+		--bg: #f5f5f5;
+		--bg-hero: linear-gradient(180deg, #ffffff 0%, #f4f4f4 55%, #eeeeee 100%);
+		--card-bg: #ffffff;
+		--card-border: #e5e5e5;
+		--accent: #ffd800;
+		--accent-soft: rgba(255, 216, 0, 0.18);
+		--accent-strong: rgba(0, 0, 0, 0.9);
+		--text-main: #111111;
+		--text-muted: #666666;
+		--text-soft: #999999;
+	}
+
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+
+	html,
+	body {
+		margin: 0;
+		padding: 0;
+		min-height: 100%;
+		font-family: 'Barlow', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+		background: var(--bg);
+		color: var(--text-main);
+	}
+
+	body {
+		margin: 0;
+		min-height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: radial-gradient(circle at top left, #ffffff 0%, #f7f7f7 55%, #eaeaea 100%);
+	}
+
+	.coming-soon {
+		width: 100%;
+		max-width: 720px;
+		padding: 2.5rem 1.75rem 3rem;
+	}
+
+	.coming-hero {
+		background: #ffffff;
+		border-radius: 1.5rem;
+		padding: 2.25rem 2.1rem 2.4rem;
+		border: 1px solid #e3e3e3;
+		box-shadow: 0 26px 60px rgba(0, 0, 0, 0.12);
+		text-align: left;
+	}
+
+	.coming-logo {
+		display: block;
+		max-width: 260px;
+		width: 70%;
+		margin-bottom: 1.75rem;
+	}
+
+	.coming-eyebrow {
+		font-size: 0.8rem;
+		text-transform: uppercase;
+		letter-spacing: 0.22em;
+		color: #999999;
+		margin: 0 0 0.6rem;
+	}
+
+	h1 {
+		font-family: 'Barlow Condensed', system-ui, sans-serif;
+		font-size: clamp(2.1rem, 3vw, 2.6rem);
+		line-height: 1.05;
+		margin: 0 0 0.9rem;
+		color: #111111;
+	}
+
+	.coming-text {
+		margin: 0 0 1.6rem;
+		color: #555555;
+		font-size: 0.98rem;
+		max-width: 32rem;
+	}
+
+	.coming-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.55rem 0.9rem;
+		border-radius: 999px;
+		background: #fffbe6;
+		border: 1px solid #f5d200;
+		color: #663c00;
+		font-size: 0.82rem;
+	}
+
+	.coming-pill .dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 999px;
+		background: #f59e0b;
+		box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.25);
+	}
+
+	@media (max-width: 640px) {
+		.coming-soon {
+			padding-inline: 1.25rem;
+		}
+
+		.coming-hero {
+			padding: 1.9rem 1.6rem 2.1rem;
+		}
+
+		.coming-logo {
+			max-width: 220px;
+		}
+	}
+</style>
