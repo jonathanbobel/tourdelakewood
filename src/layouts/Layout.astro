@@ -130,7 +130,7 @@ const navLinks = [
     --card-border: #e3e3e3;
     --text: #1b1b1b;
     --text-muted: #555555;
-    --text-soft: #888888;
+    --text-soft: #666666;
     --nav-h: 88px;
     --radius: 1rem;
     --container: 1140px;
@@ -190,24 +190,29 @@ const navLinks = [
     color: var(--text-soft);
     text-decoration: none;
     border-radius: 0.35rem;
-    transition: color 0.15s, background 0.15s;
+    transition: color 0.15s;
     position: relative;
   }
 
-  .l-navlink:hover { color: var(--text); background: var(--gray-light); }
-
-  .l-navlink--active { color: var(--text); background: var(--yellow-bg); }
-
-  .l-navlink--active::after {
+  .l-navlink::after {
     content: '';
     position: absolute;
     bottom: -4px;
     left: 0.8rem;
     right: 0.8rem;
-    height: 2px;
-    background: var(--yellow-border);
+    height: 4px;
+    background: var(--yellow);
     border-radius: 2px;
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.18s ease;
   }
+
+  .l-navlink:hover { color: var(--text); }
+  .l-navlink:hover::after { transform: scaleX(1); }
+
+  .l-navlink--active { color: var(--text); }
+  .l-navlink--active::after { transform: scaleX(1); }
 
   .l-hamburger {
     display: none;
@@ -222,6 +227,7 @@ const navLinks = [
     cursor: pointer;
     border-radius: 6px;
     flex-shrink: 0;
+    margin-right: 1.5rem;
   }
 
   .l-hamburger span {
@@ -267,6 +273,7 @@ const navLinks = [
 
     .l-menu.is-open { display: flex; }
     .l-navlink { padding: 0.75rem 1rem; }
-    .l-navlink--active::after { display: none; }
+    .l-navlink::after { display: none; }
+    .l-navlink--active { background: var(--yellow-bg); }
   }
 </style>
