@@ -1,0 +1,846 @@
+---
+import '../styles/tailwind.css';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Tour de Lakewood Distance Calculator - Jonathan Bobel</title>
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+		<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="shortcut icon" href="/favicon.ico" />
+		<link rel="manifest" href="/site.webmanifest" />
+
+		<style>
+			:root {
+				color-scheme: light;
+				--bg: #f5f5f5;
+				--bg-hero: linear-gradient(180deg, #ffffff 0%, #f4f4f4 55%, #eeeeee 100%);
+				--card-bg: #ffffff;
+				--card-border: #e5e5e5;
+				--accent: #ffd800;
+				--accent-soft: rgba(255, 216, 0, 0.18);
+				--accent-strong: rgba(0, 0, 0, 0.9);
+				--text-main: #1b1b1b;
+				--text-muted: #666666;
+				--text-soft: #999999;
+			}
+
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+			}
+
+			html,
+			body {
+				margin: 0;
+				padding: 0;
+				min-height: 100%;
+				font-family: 'Barlow', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+				background: var(--bg);
+				color: var(--text-main);
+			}
+
+			body {
+				min-height: 100vh;
+				background: radial-gradient(circle at top left, #ffffff 0%, #f7f7f7 55%, #eaeaea 100%);
+			}
+
+			.coming-soon {
+				width: 100%;
+				max-width: 720px;
+				padding: 2.5rem 1.75rem 3rem;
+			}
+
+			.coming-hero {
+				background: var(--card-bg);
+				border-radius: 1.5rem;
+				padding: 2.25rem 2.1rem 2.4rem;
+				border: 1px solid #e3e3e3;
+				box-shadow: 0 26px 60px rgba(0, 0, 0, 0.12);
+				text-align: left;
+			}
+
+			.coming-title {
+				font-family: 'Barlow Condensed', system-ui, sans-serif;
+				font-size: clamp(2.1rem, 3vw, 2.6rem);
+				line-height: 1.05;
+				margin: 0 0 0.9rem;
+				color: #1b1b1b;
+			}
+
+			.coming-subtitle {
+				margin: 0 0 1.6rem;
+				color: #555555;
+				font-size: 0.98rem;
+				max-width: 32rem;
+			}
+
+			.coming-link {
+				color: #1b1b1b;
+				text-decoration: none;
+				border-bottom: 2px solid rgba(17, 17, 17, 0.25);
+				transition: border-color 0.2s ease;
+				font-weight: 600;
+			}
+
+			.coming-link:hover {
+				border-bottom-color: #f5d200;
+			}
+
+			/* Enhanced focus styles for keyboard navigation */
+			*:focus {
+				outline: 2px solid #E25A28;
+				outline-offset: 2px;
+			}
+
+			/* Remove default focus outline for mouse users */
+			*:focus:not(:focus-visible) {
+				outline: none;
+			}
+
+			/* Enhanced focus styles for interactive elements */
+			a:focus-visible,
+			button:focus-visible,
+			input:focus-visible,
+			select:focus-visible,
+			textarea:focus-visible {
+				outline: 3px solid #E25A28;
+				outline-offset: 3px;
+				border-radius: 4px;
+			}
+
+			/* Special focus styles for navigation */
+			nav a:focus-visible {
+				outline: 3px solid #1C8282;
+				outline-offset: 3px;
+			}
+
+			/* Focus styles for form elements */
+			input:focus-visible,
+			textarea:focus-visible {
+				outline: 3px solid #E25A28;
+				outline-offset: 3px;
+				border-color: #E25A28;
+			}
+
+			/* Map container sizing */
+			#map {
+				height: 500px;
+			}
+
+			.spinner {
+				border: 4px solid #f3f3f3;
+				border-top: 4px solid #E25A28;
+				border-radius: 50%;
+				width: 40px;
+				height: 40px;
+				animation: spin 1s linear infinite;
+				margin: 0 auto 20px;
+			}
+
+			@keyframes spin {
+				0% {
+					transform: rotate(0deg);
+				}
+				100% {
+					transform: rotate(360deg);
+				}
+			}
+
+			.file-input-container.dragover {
+				border-color: #E25A28 !important;
+				background-color: #fef7f0 !important;
+			}
+
+			/* Enhanced hover effects */
+			.enhanced-card {
+				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			}
+
+			.enhanced-card:hover {
+				box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+			}
+
+			.enhanced-button {
+				transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			}
+
+			.enhanced-button:hover:not(:disabled) {
+				box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+			}
+
+			@media (max-width: 640px) {
+				.coming-soon {
+					padding-inline: 1.25rem;
+				}
+
+				.coming-hero {
+					padding: 1.9rem 1.6rem 2.1rem;
+				}
+			}
+		</style>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
+		/>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+	</head>
+
+		<body class="flex flex-col min-h-screen font-sans">
+		<div id="tsparticles"></div>
+
+		<!-- Navbar -->
+		<nav class="bg-[#F5F5F5] fixed top-0 left-0 w-full z-50 font-sans">
+			<div class="container max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+				<!-- Logo -->
+				<a href="/" class="text-3xl font-bold hover:text-[#E25A28] transition-colors duration-300"
+					>Tour de Lakewood</a
+				>
+
+				<!-- Hamburger / X Toggle Button -->
+				<button
+					id="menu-btn"
+					class="relative z-50 flex flex-col justify-center items-center w-8 h-8 space-y-1 md:hidden group focus:outline-none"
+					aria-label="Toggle menu"
+				>
+					<span
+						class="w-8 h-1 bg-[#1b1b1b] transition-all duration-300 ease-in-out origin-center group-[.open]:rotate-45 group-[.open]:translate-y-2"
+					></span>
+					<span class="w-8 h-1 bg-[#1b1b1b] transition-all duration-300 ease-in-out group-[.open]:opacity-0"></span>
+					<span
+						class="w-8 h-1 bg-[#1b1b1b] transition-all duration-300 ease-in-out origin-center group-[.open]:-rotate-45 group-[.open]:-translate-y-2"
+					></span>
+				</button>
+
+				<!-- Navigation Links -->
+				<ul id="menu" class="hidden md:flex space-x-6 text-2xl font-bold">
+					<li>
+						<a
+							href="#tour-de-lakewood-calculator"
+							class="relative hover:before:scale-x-100 before:absolute before:bottom-[-4px] before:left-0 before:w-full before:h-[4px] before:bg-[#1C8282] before:scale-x-0 before:origin-left before:transition-transform before:duration-300"
+							>Calculator</a
+						>
+					</li>
+				</ul>
+			</div>
+
+			<!-- Mobile Slide-in Menu -->
+			<div
+				id="mobile-menu"
+				class="fixed top-0 right-0 h-full w-3/4 max-w-sm bg-[#F5F5F5] text-[#1b1b1b] transform translate-x-full transition-transform duration-300 ease-in-out md:hidden z-40 flex flex-col space-y-6 p-6"
+			>
+				<a href="#tour-de-lakewood-calculator" class="text-xl hover:text-[#1C8282]">Calculator</a>
+			</div>
+		</nav>
+
+		<!-- Backdrop Overlay -->
+		<div
+			id="menu-backdrop"
+			class="fixed inset-0 bg-neutral-800 bg-opacity-40 opacity-0 hidden z-30 md:hidden transition-opacity duration-300 ease-in-out"
+		></div>
+
+		<main class="flex-grow pt-24 flex items-center justify-center">
+			<section
+				id="tour-de-lakewood-calculator"
+				class="w-full flex flex-col items-center justify-center coming-soon space-y-8"
+			>
+				<div class="text-center">
+					<h1 class="coming-title mb-4 transition-all duration-300">
+						🚴‍♂️ Tour de Lakewood
+					</h1>
+					<p class="coming-subtitle transition-colors duration-300 hover:text-[#1b1b1b]">
+						Compare your Strava routes within Lakewood, OH
+					</p>
+				</div>
+
+				<div class="w-full coming-hero space-y-6 enhanced-card">
+					<div
+						id="boundaryStatus"
+						class="bg-[#1C8282]/10 border border-[#1C8282]/30 rounded-lg p-4 text-center text-sm text-[#1C8282] transition-all duration-300 hover:bg-[#1C8282]/20"
+					>
+						Loading Lakewood city boundary...
+					</div>
+
+					<div
+						id="fileInputContainer"
+						class="border-4 border-dashed border-[#E25A28]/40 rounded-xl p-12 text-center transition-all duration-300 cursor-pointer hover:border-[#E25A28] hover:bg-[#E25A28]/5 enhanced-card file-input-container"
+					>
+						<div class="text-lg text-[#E25A28] font-medium mb-2 transition-colors duration-300 hover:text-[#1C8282]">
+							📁 Click to upload GPX files or drag & drop
+						</div>
+						<div class="text-[#1b1b1b]/60 text-sm transition-colors duration-300 hover:text-[#1b1b1b]">
+							Select multiple GPX files to compare coverage
+						</div>
+						<input type="file" id="fileInput" accept=".gpx" multiple class="hidden" />
+					</div>
+
+					<div id="fileList" class="space-y-3"></div>
+
+					<button
+						id="analyzeBtn"
+						disabled
+						class="w-full bg-[#E25A28] hover:bg-[#E25A28]/90 text-white font-medium py-4 px-6 rounded-lg transition-all duration-300 transform disabled:bg-gray-200 disabled:cursor-not-allowed disabled:text-[#1b1b1b]/70 disabled:hover:scale-100 enhanced-button"
+					>
+						Analyze Coverage
+					</button>
+				</div>
+
+				<div
+					id="resultsSection"
+					class="hidden w-full coming-hero enhanced-card"
+				>
+					<h2 class="text-2xl font-bold text-[#1b1b1b] mb-6 transition-all duration-300 hover:text-[#E25A28]">
+						Coverage Analysis Results
+					</h2>
+					<div id="results"></div>
+				</div>
+
+				<div class="w-full coming-hero enhanced-card">
+					<h2 class="text-2xl font-bold text-[#1b1b1b] mb-6 transition-all duration-300 hover:text-[#E25A28]">
+						Map Visualization
+					</h2>
+					<div
+						id="map"
+						class="rounded-lg overflow-hidden border border-gray-200 transition-all duration-300 hover:border-[#E25A28]/50"
+					></div>
+				</div>
+			</section>
+		</main>
+
+		<footer class="bg-[#1b1b1b] text-[#F5F5F5] py-3 text-center font-sans">
+			<p>&copy; 2025 Jonathan Bobel. All rights reserved.</p>
+		</footer>
+
+		<script>
+			// @ts-nocheck
+			// Simple mobile menu toggle for the Tailwind arbitrary variants.
+			(() => {
+				const menuBtn = document.getElementById('menu-btn');
+				const mobileMenu = document.getElementById('mobile-menu');
+				const backdrop = document.getElementById('menu-backdrop');
+				if (!menuBtn || !mobileMenu || !backdrop) return;
+
+				const close = () => {
+					menuBtn.classList.remove('open');
+					mobileMenu.classList.add('translate-x-full');
+					mobileMenu.classList.remove('translate-x-0');
+					backdrop.classList.add('hidden', 'opacity-0');
+					backdrop.classList.remove('opacity-100');
+				};
+
+				const open = () => {
+					menuBtn.classList.add('open');
+					mobileMenu.classList.remove('translate-x-full');
+					mobileMenu.classList.add('translate-x-0');
+					backdrop.classList.remove('hidden', 'opacity-0');
+					backdrop.classList.add('opacity-100');
+				};
+
+				menuBtn.addEventListener('click', () => {
+					const isOpen = mobileMenu.classList.contains('translate-x-0');
+					if (isOpen) close();
+					else open();
+				});
+
+				backdrop.addEventListener('click', close);
+			})();
+
+			// Lakewood city boundary from OpenStreetMap (Nominatim polygon_geojson)
+			const lakewoodBoundary = {
+				type: 'Feature',
+				geometry: {
+					type: 'Polygon',
+					coordinates: [
+						[
+							[-81.843982, 41.494593],
+							[-81.840659, 41.492346],
+							[-81.836965, 41.489937],
+							[-81.836059, 41.489347],
+							[-81.835058, 41.488847],
+							[-81.833858, 41.487847],
+							[-81.832306, 41.486416],
+							[-81.8317644, 41.4856877],
+							[-81.8314012, 41.4848328],
+							[-81.8312016, 41.4843079],
+							[-81.8312026, 41.4831243],
+							[-81.8313019, 41.4827507],
+							[-81.8315987, 41.4819781],
+							[-81.8329701, 41.4804274],
+							[-81.833953, 41.478713],
+							[-81.833234, 41.47705],
+							[-81.830219, 41.476886],
+							[-81.829414, 41.477167],
+							[-81.827639, 41.477708],
+							[-81.8273635, 41.4776805],
+							[-81.821904, 41.477136],
+							[-81.823559, 41.474849],
+							[-81.823706, 41.4741125],
+							[-81.8238047, 41.4736178],
+							[-81.824158, 41.471848],
+							[-81.82403, 41.471438],
+							[-81.824058, 41.470748],
+							[-81.825185, 41.470736],
+							[-81.826323, 41.469962],
+							[-81.827374, 41.470757],
+							[-81.832243, 41.470875],
+							[-81.832698, 41.470485],
+							[-81.832806, 41.470485],
+							[-81.8330821, 41.4705254],
+							[-81.833903, 41.470654],
+							[-81.834089, 41.470667],
+							[-81.837112, 41.469134],
+							[-81.837139, 41.469041],
+							[-81.837488, 41.468023],
+							[-81.837624, 41.467601],
+							[-81.837271, 41.467263],
+							[-81.8368, 41.466018],
+							[-81.835608, 41.464919],
+							[-81.836573, 41.464596],
+							[-81.837358, 41.464247],
+							[-81.837258, 41.463447],
+							[-81.834958, 41.463247],
+							[-81.834058, 41.464347],
+							[-81.833623, 41.464202],
+							[-81.833158, 41.464048],
+							[-81.832958, 41.463648],
+							[-81.831958, 41.463248],
+							[-81.832143, 41.464651],
+							[-81.832867, 41.464752],
+							[-81.8336, 41.465345],
+							[-81.836119, 41.467387],
+							[-81.83553, 41.469617],
+							[-81.8331771, 41.4693027],
+							[-81.8326776, 41.4692177],
+							[-81.831941, 41.468941],
+							[-81.830089, 41.468101],
+							[-81.8261684, 41.4681343],
+							[-81.824558, 41.468148],
+							[-81.8221175, 41.4681358],
+							[-81.8208104, 41.468124],
+							[-81.8195138, 41.4681122],
+							[-81.8189816, 41.4681122],
+							[-81.8184713, 41.4681472],
+							[-81.818063, 41.468145],
+							[-81.8177062, 41.4680863],
+							[-81.8173772, 41.4680016],
+							[-81.8167526, 41.4678425],
+							[-81.8163369, 41.4677517],
+							[-81.815674, 41.467529],
+							[-81.8152641, 41.4680553],
+							[-81.8141418, 41.4680332],
+							[-81.8118693, 41.4680132],
+							[-81.8107805, 41.4680092],
+							[-81.8106005, 41.468006],
+							[-81.810396, 41.468003],
+							[-81.8104472, 41.4690603],
+							[-81.8106017, 41.4694904],
+							[-81.8107572, 41.4695527],
+							[-81.8107492, 41.4697678],
+							[-81.810357, 41.469941],
+							[-81.8088086, 41.4699566],
+							[-81.806064, 41.470083],
+							[-81.804739, 41.470148],
+							[-81.803435, 41.470042],
+							[-81.80053, 41.470008],
+							[-81.799999, 41.469922],
+							[-81.7974059, 41.469929],
+							[-81.7969663, 41.4699415],
+							[-81.7968161, 41.4699457],
+							[-81.7965141, 41.4699543],
+							[-81.7960775, 41.4699679],
+							[-81.7950413, 41.4700003],
+							[-81.7939402, 41.4700198],
+							[-81.7934539, 41.470032],
+							[-81.7929386, 41.4700449],
+							[-81.792055, 41.4700729],
+							[-81.7915473, 41.4700879],
+							[-81.79092, 41.4701266],
+							[-81.7903942, 41.4701882],
+							[-81.7898057, 41.4702978],
+							[-81.789748, 41.4703101],
+							[-81.7896994, 41.4703206],
+							[-81.7896669, 41.470326],
+							[-81.7893396, 41.4703885],
+							[-81.7890078, 41.4704519],
+							[-81.7885292, 41.470451],
+							[-81.7875014, 41.4704519],
+							[-81.7865133, 41.4704692],
+							[-81.7858008, 41.4704763],
+							[-81.7855427, 41.4704789],
+							[-81.7844921, 41.4704795],
+							[-81.7833725, 41.4704851],
+							[-81.783059, 41.470486],
+							[-81.780453, 41.469314],
+							[-81.7793624, 41.4697339],
+							[-81.7785283, 41.4700563],
+							[-81.7780534, 41.4702501],
+							[-81.7774937, 41.4704882],
+							[-81.7747545, 41.4715878],
+							[-81.7728831, 41.4723466],
+							[-81.770864, 41.4732132],
+							[-81.7706079, 41.473329],
+							[-81.7698487, 41.4736312],
+							[-81.7688028, 41.4739999],
+							[-81.7688036, 41.4746848],
+							[-81.7688044, 41.4754362],
+							[-81.768804, 41.4754918],
+							[-81.7687933, 41.4769251],
+							[-81.7687855, 41.4777346],
+							[-81.7687739, 41.4789449],
+							[-81.768772, 41.4794602],
+							[-81.7687744, 41.4796439],
+							[-81.7687641, 41.4798414],
+							[-81.7687604, 41.4811905],
+							[-81.76876, 41.4816548],
+							[-81.7687536, 41.4822667],
+							[-81.7687488, 41.4827011],
+							[-81.7687481, 41.4827647],
+							[-81.7687375, 41.4829423],
+							[-81.7687471, 41.483665],
+							[-81.7687444, 41.4842515],
+							[-81.76874, 41.4852213],
+							[-81.7687404, 41.4854621],
+							[-81.7687422, 41.4854739],
+							[-81.7687444, 41.4857179],
+							[-81.7687416, 41.4862449],
+							[-81.768742, 41.4866069],
+							[-81.7687424, 41.4869418],
+							[-81.7687431, 41.487528],
+							[-81.7687235, 41.4880629],
+							[-81.7687173, 41.4882763],
+							[-81.7687097, 41.488513],
+							[-81.7686995, 41.488854],
+							[-81.7686981, 41.4889872],
+							[-81.7686736, 41.4898924],
+							[-81.7686715, 41.4899705],
+							[-81.7686713, 41.4899735],
+							[-81.7686133, 41.4909595],
+							[-81.7685853, 41.4913856],
+							[-81.7685818, 41.4914395],
+							[-81.7685767, 41.4915172],
+							[-81.768576, 41.491636],
+							[-81.768912, 41.491664],
+							[-81.769032, 41.497326],
+							[-81.770245, 41.49755],
+							[-81.777786, 41.498773],
+							[-81.782212, 41.499655],
+							[-81.784189, 41.500048],
+							[-81.78521, 41.500048],
+							[-81.794234, 41.500048],
+							[-81.802425, 41.500048],
+							[-81.806419, 41.499584],
+							[-81.808583, 41.499332],
+							[-81.810963, 41.499172],
+							[-81.815384, 41.498806],
+							[-81.820562, 41.498066],
+							[-81.82703, 41.496913],
+							[-81.843982, 41.494593]
+						]
+					]
+				},
+				properties: {
+					name: 'Lakewood, OH (OpenStreetMap boundary)'
+				}
+			};
+
+			let map;
+			let files = [];
+			let analysisResults = [];
+
+			// Initialize map
+			async function initMap() {
+				const statusEl = document.getElementById('boundaryStatus');
+				if (statusEl) {
+					statusEl.innerHTML = '✅ Using OpenStreetMap Lakewood city boundary';
+					statusEl.className =
+						'bg-[#1C8282]/10 border border-[#1C8282]/30 rounded-lg p-4 text-center text-sm text-[#1C8282] transition-all duration-300 hover:bg-[#1C8282]/20';
+				}
+
+				map = L.map('map').setView([41.4856, -81.8017], 13);
+				L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+					attribution: '© OpenStreetMap contributors'
+				}).addTo(map);
+
+				L.geoJSON(lakewoodBoundary, {
+					style: {
+						color: '#E25A28',
+						weight: 3,
+						fillColor: '#E25A28',
+						fillOpacity: 0.1
+					}
+				})
+					.addTo(map)
+					.bindPopup(lakewoodBoundary.properties.name);
+			}
+
+			// File input handlers
+			document.getElementById('fileInputContainer').addEventListener('click', () => {
+				document.getElementById('fileInput').click();
+			});
+
+			document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+			// Drag and drop handlers
+			document.getElementById('fileInputContainer').addEventListener('dragover', (e) => {
+				e.preventDefault();
+				e.currentTarget.classList.add('dragover');
+			});
+
+			document.getElementById('fileInputContainer').addEventListener('dragleave', (e) => {
+				e.currentTarget.classList.remove('dragover');
+			});
+
+			document.getElementById('fileInputContainer').addEventListener('drop', (e) => {
+				e.preventDefault();
+				e.currentTarget.classList.remove('dragover');
+				handleFileSelect({ target: { files: e.dataTransfer.files } });
+			});
+
+			function handleFileSelect(event) {
+				const selectedFiles = Array.from(event.target.files);
+				files = [...files, ...selectedFiles];
+				updateFileList();
+				document.getElementById('analyzeBtn').disabled = files.length === 0;
+			}
+
+			function updateFileList() {
+				const fileList = document.getElementById('fileList');
+				fileList.innerHTML = '';
+
+				files.forEach((file, index) => {
+					const fileItem = document.createElement('div');
+					fileItem.className =
+							'flex items-center justify-between p-4 bg-[#E25A28]/20 rounded-lg border-2 border-[#E25A28] transition-all duration-300 hover:bg-[#E25A28]/30 enhanced-card';
+					fileItem.innerHTML = `
+						<div class="font-medium text-[#1b1b1b] transition-colors duration-300 hover:text-[#E25A28]" style="color: ${file.name.includes('.gpx') ? '#E25A28' : '#E25A28'}">${file.name}</div>
+						<button onclick="removeFile(${index})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-all duration-300 enhanced-button">
+							Remove
+						</button>
+					`;
+					fileList.appendChild(fileItem);
+				});
+			}
+
+			function removeFile(index) {
+				files.splice(index, 1);
+				updateFileList();
+				document.getElementById('analyzeBtn').disabled = files.length === 0;
+			}
+
+			// GPX parsing function
+			function parseGPX(gpxText) {
+				const parser = new DOMParser();
+				const gpxDoc = parser.parseFromString(gpxText, 'text/xml');
+				const coordinates = [];
+
+				// Extract track points
+				const trkpts = gpxDoc.querySelectorAll('trkpt');
+				trkpts.forEach((trkpt) => {
+					const lat = parseFloat(trkpt.getAttribute('lat'));
+					const lon = parseFloat(trkpt.getAttribute('lon'));
+					coordinates.push([lon, lat]);
+				});
+
+				// Extract waypoints if no track points
+				if (coordinates.length === 0) {
+					const wpts = gpxDoc.querySelectorAll('wpt');
+					wpts.forEach((wpt) => {
+						const lat = parseFloat(wpt.getAttribute('lat'));
+						const lon = parseFloat(wpt.getAttribute('lon'));
+						coordinates.push([lon, lat]);
+					});
+				}
+
+				return coordinates;
+			}
+
+			// Analysis function
+			async function analyzeFiles() {
+				const resultsSection = document.getElementById('resultsSection');
+				const results = document.getElementById('results');
+
+				resultsSection.style.display = 'block';
+				results.innerHTML =
+					'<div class="text-center py-8"><div class="spinner"></div><div class="text-[#E25A28]">Analyzing GPX files...</div></div>';
+
+				analysisResults = [];
+				const colors = ['#E25A28', '#1C8282', '#363636', '#c8c6af', '#ff6b6b', '#4ecdc4'];
+				const lakewoodAreaSqMiles = turf.area(lakewoodBoundary) / 2589988.11; // Convert m^2 -> sq miles
+
+				try {
+					for (let i = 0; i < files.length; i++) {
+						const file = files[i];
+						const gpxText = await file.text();
+						const coordinates = parseGPX(gpxText);
+
+						if (coordinates.length === 0) {
+							throw new Error(`No coordinates found in ${file.name}`);
+						}
+
+						// Calculate metrics (route-geometry based)
+						let distance = 0;
+						let coverageArea = 0;
+						let percentLakewoodTraveled = 0;
+						let insideSegmentsForMap = [];
+
+						if (coordinates.length > 1) {
+							const routeLine = turf.lineString(coordinates);
+
+							// --------
+							// Distance #1: miles of the route inside Lakewood
+							// --------
+							try {
+								// Prefer splitting by the polygon boundary for better accuracy.
+								if (typeof turf.lineSplit === 'function' && typeof turf.polygonToLine === 'function') {
+									const boundaryLine = turf.polygonToLine(lakewoodBoundary);
+									const split = turf.lineSplit(routeLine, boundaryLine);
+
+									if (split && split.features && split.features.length > 0) {
+										split.features.forEach((seg) => {
+											const segLen = turf.length(seg, { units: 'miles' });
+											if (!segLen) return;
+
+											// Midpoint test decides whether the whole segment is inside.
+											const mid = turf.along(seg, segLen / 2, { units: 'miles' });
+											const isInside = turf.booleanPointInPolygon(mid, lakewoodBoundary);
+
+											if (isInside) {
+												distance += segLen;
+												insideSegmentsForMap.push(seg.geometry.coordinates);
+											}
+										});
+									}
+								}
+							} catch (e) {
+								// Fall back below.
+							}
+
+							// Fallback: approximate with per-edge midpoint inclusion.
+							// This avoids hard failures when lineSplit/polygonToLine aren't available.
+							if (insideSegmentsForMap.length === 0) {
+								for (let j = 0; j < coordinates.length - 1; j++) {
+									const a = coordinates[j];
+									const b = coordinates[j + 1];
+									const seg = turf.lineString([a, b]);
+									const segLen = turf.length(seg, { units: 'miles' });
+									if (!segLen) continue;
+
+									const mid = turf.point([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]);
+									const isInside = turf.booleanPointInPolygon(mid, lakewoodBoundary);
+
+									if (isInside) {
+										distance += segLen;
+										insideSegmentsForMap.push([a, b]);
+									}
+								}
+							}
+
+							// --------
+							// Coverage #2: area covered by buffered route inside Lakewood
+							// --------
+							// Buffer width matches your current implementation (0.01 miles).
+							const buffered = turf.buffer(routeLine, 0.01, { units: 'miles' });
+							const intersection = turf.intersect(buffered, lakewoodBoundary);
+							if (intersection) {
+								coverageArea = turf.area(intersection) / 2589988.11; // Convert to square miles
+								percentLakewoodTraveled =
+									lakewoodAreaSqMiles > 0 ? Math.min(100, (coverageArea / lakewoodAreaSqMiles) * 100) : 0;
+							}
+						}
+
+						const result = {
+							name: file.name,
+							// coordinates is kept for debugging/future use; distance/coverage are route-geometry based.
+							coordinates: coordinates,
+							distance: distance,
+							coverageArea: coverageArea,
+							percentLakewoodTraveled: percentLakewoodTraveled,
+							color: colors[i % colors.length]
+						};
+
+						analysisResults.push(result);
+
+						// Add to map (draw only the route portions classified inside Lakewood)
+						insideSegmentsForMap.forEach((segCoords) => {
+							if (!segCoords || segCoords.length < 2) return;
+							L.polyline(
+								segCoords.map((c) => [c[1], c[0]]),
+								{
+									color: result.color,
+									weight: 3,
+									opacity: 0.7
+								}
+							).addTo(map);
+						});
+					}
+
+					displayResults();
+				} catch (error) {
+					results.innerHTML = `<div class="bg-red-100 border border-red-300 text-red-700 p-4 rounded-lg">Error: ${error.message}</div>`;
+				}
+			}
+
+			function displayResults() {
+				const results = document.getElementById('results');
+
+				// Sort by distance (or coverage area) to find winner
+				const sortedResults = [...analysisResults].sort((a, b) => b.distance - a.distance);
+				const winner = sortedResults[0];
+
+				let html = '';
+
+				if (winner) {
+					html += `<div class="bg-green-100 border border-green-300 text-green-800 p-6 rounded-lg text-center text-lg font-medium mb-6 transition-all duration-300 hover:bg-green-200 enhanced-card">
+						🏆 Winner: ${winner.name} with ${winner.distance.toFixed(2)} miles traveled inside Lakewood!
+					</div>`;
+				}
+
+				analysisResults.forEach((result) => {
+					html += `
+						<div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg mb-4 border-2 transition-all duration-300 hover:bg-gray-100 enhanced-card" style="border-color: ${result.color};">
+							<div class="font-medium text-[#1b1b1b] transition-colors duration-300 hover:text-[#E25A28]" style="color: ${result.color};">${result.name}</div>
+							<div class="flex gap-6 text-sm text-[#1b1b1b]/70">
+								<div class="text-center">
+									<div class="font-bold text-lg text-[#E25A28]">${result.distance.toFixed(2)}</div>
+									<div>Miles in Lakewood</div>
+								</div>
+								<div class="text-center">
+									<div class="font-bold text-lg text-[#1C8282]">${result.coverageArea.toFixed(4)}</div>
+									<div>Sq Miles Coverage</div>
+								</div>
+								<div class="text-center">
+									<div class="font-bold text-lg text-[#E25A28]">${result.percentLakewoodTraveled.toFixed(1)}%</div>
+									<div>% of Lakewood Traveled</div>
+								</div>
+							</div>
+						</div>
+					`;
+				});
+
+				results.innerHTML = html;
+			}
+
+			// Initialize
+			document.getElementById('analyzeBtn').addEventListener('click', analyzeFiles);
+
+			// Initialize map when page loads
+			document.addEventListener('DOMContentLoaded', initMap);
+		</script>
+	</body>
+</html>
+

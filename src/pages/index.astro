@@ -29,6 +29,20 @@
 				/>
 				<p class="coming-eyebrow">Community ride • Lakewood, Ohio</p>
 				<h1>Tour de Lakewood is rolling out on July 11th, 2026.</h1>
+				<div class="countdown" aria-label="Countdown to July 11, 2026 at 8:00 AM">
+					<div class="countdown-block">
+						<div class="countdown-value" id="cd-days">--</div>
+						<div class="countdown-label">Days</div>
+					</div>
+					<div class="countdown-block">
+						<div class="countdown-value" id="cd-minutes">--</div>
+						<div class="countdown-label">Minutes</div>
+					</div>
+					<div class="countdown-block">
+						<div class="countdown-value" id="cd-seconds">--</div>
+						<div class="countdown-label">Seconds</div>
+					</div>
+				</div>
 				<p class="coming-text">
 					Join us for an epic 12-hour cycling adventure through Lakewood! Whether you ride for 1 hour or the full 12, come explore our city on two wheels.
 				</p>
@@ -36,6 +50,41 @@
 					<span class="dot"></span>
 					<span>Site in progress</span>
 				</div>
+				<p class="coming-helper">
+					Want to test the route analyzer?&nbsp;<a class="coming-link" href="/distance-calculator/">Open distance calculator</a>
+				</p>
+				<script>
+					(() => {
+						// Countdown target: July 11th, 2026 at 8:00am in Eastern time (Lakewood, OH).
+						// Using an explicit UTC offset keeps it deterministic for this demo.
+						const targetMs = new Date('2026-07-11T08:00:00-04:00').getTime();
+
+						const daysEl = document.getElementById('cd-days');
+						const minutesEl = document.getElementById('cd-minutes');
+						const secondsEl = document.getElementById('cd-seconds');
+						if (!daysEl || !minutesEl || !secondsEl) return;
+
+						const pad2 = (n: number) => String(n).padStart(2, '0');
+
+						const update = () => {
+							const nowMs = Date.now();
+							let diffMs = targetMs - nowMs;
+							if (diffMs < 0) diffMs = 0;
+
+							const totalSeconds = Math.floor(diffMs / 1000);
+							const days = Math.floor(totalSeconds / 86400);
+							const minutes = Math.floor((totalSeconds % 3600) / 60);
+							const seconds = totalSeconds % 60;
+
+							daysEl.textContent = String(days);
+							minutesEl.textContent = pad2(minutes);
+							secondsEl.textContent = pad2(seconds);
+						};
+
+						update();
+						setInterval(update, 1000);
+					})();
+				</script>
 			</section>
 		</main>
 	</body>
@@ -51,7 +100,7 @@
 		--accent: #ffd800;
 		--accent-soft: rgba(255, 216, 0, 0.18);
 		--accent-strong: rgba(0, 0, 0, 0.9);
-		--text-main: #111111;
+		--text-main: #1b1b1b;
 		--text-muted: #666666;
 		--text-soft: #999999;
 	}
@@ -116,7 +165,7 @@
 		font-size: clamp(2.1rem, 3vw, 2.6rem);
 		line-height: 1.05;
 		margin: 0 0 0.9rem;
-		color: #111111;
+		color: #1b1b1b;
 	}
 
 	.coming-text {
@@ -146,6 +195,54 @@
 		box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.25);
 	}
 
+	.coming-helper {
+		margin: 1.25rem 0 0;
+		color: #666666;
+		font-size: 0.92rem;
+	}
+
+	.coming-link {
+		color: #1b1b1b;
+		text-decoration: none;
+		border-bottom: 2px solid rgba(17, 17, 17, 0.25);
+		transition: border-color 0.2s ease;
+		font-weight: 600;
+	}
+
+	.coming-link:hover {
+		border-bottom-color: #f5d200;
+	}
+
+	.countdown {
+		margin: 1.05rem 0 1.35rem;
+		display: flex;
+		gap: 0.65rem;
+	}
+
+	.countdown-block {
+		flex: 1;
+		background: #fffbe6;
+		border: 1px solid #f5d200;
+		border-radius: 1rem;
+		padding: 0.9rem 0.65rem 0.75rem;
+		text-align: center;
+	}
+
+	.countdown-value {
+		font-family: 'Barlow Condensed', system-ui, sans-serif;
+		font-size: 2.05rem;
+		line-height: 1;
+		color: #1b1b1b;
+	}
+
+	.countdown-label {
+		margin-top: 0.35rem;
+		font-size: 0.78rem;
+		text-transform: uppercase;
+		letter-spacing: 0.18em;
+		color: #666666;
+	}
+
 	@media (max-width: 640px) {
 		.coming-soon {
 			padding-inline: 1.25rem;
@@ -157,6 +254,14 @@
 
 		.coming-logo {
 			max-width: 220px;
+		}
+
+		.countdown {
+			gap: 0.5rem;
+		}
+
+		.countdown-value {
+			font-size: 1.75rem;
 		}
 	}
 </style>
