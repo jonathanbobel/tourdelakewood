@@ -1,0 +1,294 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Results"
+  description="Tour de Lakewood 2026 results — posted after the event on July 11th, 2026."
+>
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Tour de Lakewood 2026</p>
+      <h1 class="hero-h1">
+        Results<br />
+        <em>Board.</em>
+      </h1>
+    </div>
+  </section>
+
+  <section class="tbd-section">
+    <div class="container">
+      <div class="tbd-card">
+        <div class="tbd-badge">
+          <span class="dot"></span>
+          <span>Event coming up &mdash; no results yet</span>
+        </div>
+
+        <h2 class="tbd-h2">Check back on July 12th.</h2>
+        <p class="tbd-body">
+          Tour de Lakewood takes place on July 11th, 2026. Results &mdash; mileage
+          totals, city coverage, and leaderboard &mdash; will be posted here after
+          the event wraps up.
+        </p>
+
+        <p class="tbd-eyebrow">Event starts in</p>
+        <div class="countdown" aria-label="Countdown to July 11, 2026 at 8:00 AM">
+          <div class="cd-block">
+            <span class="cd-val" id="r-days">00</span>
+            <span class="cd-unit">Days</span>
+          </div>
+          <span class="cd-sep" aria-hidden="true">:</span>
+          <div class="cd-block">
+            <span class="cd-val" id="r-hours">00</span>
+            <span class="cd-unit">Hrs</span>
+          </div>
+          <span class="cd-sep" aria-hidden="true">:</span>
+          <div class="cd-block">
+            <span class="cd-val" id="r-mins">00</span>
+            <span class="cd-unit">Min</span>
+          </div>
+          <span class="cd-sep" aria-hidden="true">:</span>
+          <div class="cd-block">
+            <span class="cd-val" id="r-secs">00</span>
+            <span class="cd-unit">Sec</span>
+          </div>
+        </div>
+
+        <div class="tbd-meta">
+          <div class="tbd-meta-row">Saturday, July 11th, 2026</div>
+          <div class="tbd-meta-row">8:00 AM &ndash; 8:00 PM Eastern</div>
+          <div class="tbd-meta-row">Lakewood, Ohio</div>
+        </div>
+
+        <div class="tbd-actions">
+          <a href="/about" class="btn-yellow">Learn about the ride</a>
+          <a href="/distance-calculator" class="btn-ghost">Route Analyzer</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  (() => {
+    const TARGET = new Date('2026-07-11T08:00:00-04:00').getTime();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const tick = () => {
+      const diff = Math.max(0, TARGET - Date.now());
+      const s = Math.floor(diff / 1000);
+      const d  = document.getElementById('r-days');
+      const h  = document.getElementById('r-hours');
+      const m  = document.getElementById('r-mins');
+      const sc = document.getElementById('r-secs');
+      if (d)  d.textContent  = String(Math.floor(s / 86400));
+      if (h)  h.textContent  = pad(Math.floor((s % 86400) / 3600));
+      if (m)  m.textContent  = pad(Math.floor((s % 3600) / 60));
+      if (sc) sc.textContent = pad(s % 60);
+    };
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>
+
+<style>
+  .container { max-width: var(--container); margin: 0 auto; }
+
+  /* Hero */
+  .hero {
+    background: var(--black);
+    padding: 4.5rem 1.5rem 4rem;
+  }
+
+  .hero-inner { max-width: var(--container); margin: 0 auto; }
+
+  .eyebrow {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--yellow);
+    font-weight: 600;
+    margin: 0 0 1.25rem;
+  }
+
+  .hero-h1 {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: clamp(4rem, 10vw, 8rem);
+    font-weight: 800;
+    line-height: 0.9;
+    text-transform: uppercase;
+    color: var(--white);
+    margin: 0;
+  }
+
+  .hero-h1 em { font-style: normal; color: var(--yellow); }
+
+  /* TBD section */
+  .tbd-section {
+    background: var(--gray-light);
+    padding: 5rem 1.5rem;
+  }
+
+  .tbd-card {
+    max-width: 560px;
+    margin: 0 auto;
+    background: var(--white);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.07);
+    text-align: center;
+  }
+
+  .tbd-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: var(--yellow-bg);
+    border: 1px solid var(--yellow-border);
+    color: #5a3800;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245,158,11,0.25);
+    flex-shrink: 0;
+  }
+
+  .tbd-h2 {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text);
+    margin: 0 0 0.75rem;
+  }
+
+  .tbd-body {
+    font-size: 0.97rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+    margin: 0 0 2rem;
+  }
+
+  .tbd-eyebrow {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-soft);
+    font-style: italic;
+    margin: 0 0 0.85rem;
+  }
+
+  /* Countdown */
+  .countdown {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.25rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .cd-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .cd-val {
+    display: block;
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 2.75rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text);
+    background: var(--yellow-bg);
+    border: 1px solid var(--yellow-border);
+    border-radius: 0.5rem;
+    padding: 0.3rem 0.5rem;
+    min-width: 66px;
+    text-align: center;
+  }
+
+  .cd-unit {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+  }
+
+  .cd-sep {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 2.75rem;
+    font-weight: 700;
+    color: var(--card-border);
+    line-height: 1;
+    flex-shrink: 0;
+    padding-top: 0.05em;
+  }
+
+  /* Meta rows */
+  .tbd-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    text-align: left;
+    background: var(--gray-light);
+    border-radius: 0.65rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .tbd-meta-row {
+    font-size: 1rem;
+    color: var(--text-muted);
+  }
+
+  /* Buttons */
+  .tbd-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+
+  .btn-yellow {
+    display: inline-block;
+    background: var(--yellow);
+    color: var(--black);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.35rem;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .btn-yellow:hover { background: #ffe940; }
+
+  .btn-ghost {
+    display: inline-block;
+    background: transparent;
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.35rem;
+    border: 2px solid var(--card-border);
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+  .btn-ghost:hover { border-color: var(--text); }
+
+  @media (max-width: 600px) {
+    .tbd-section { padding: 3rem 1.25rem; }
+    .tbd-card { padding: 1.75rem 1.25rem; }
+    .cd-val { font-size: 2.1rem; min-width: 52px; }
+  }
+</style>

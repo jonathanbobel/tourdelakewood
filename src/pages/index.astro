@@ -1,267 +1,645 @@
 ---
+import Layout from '../layouts/Layout.astro';
 ---
 
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<title>Tour de Lakewood</title>
-		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-		<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
-		<link rel="manifest" href="/site.webmanifest" />
-		<link
-			rel="stylesheet"
-			href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap"
-		/>
-	</head>
-	<body>
-		<main class="coming-soon">
-			<section class="coming-hero">
-				<img
-					src="/tour-de-lakewood.svg"
-					alt="Tour de Lakewood"
-					class="coming-logo"
-					loading="eager"
-					decoding="async"
-				/>
-				<p class="coming-eyebrow">Community ride • Lakewood, Ohio</p>
-				<h1>Tour de Lakewood is rolling out on July 11th, 2026.</h1>
-				<div class="countdown" aria-label="Countdown to July 11, 2026 at 8:00 AM">
-					<div class="countdown-block">
-						<div class="countdown-value" id="cd-days">--</div>
-						<div class="countdown-label">Days</div>
-					</div>
-					<div class="countdown-block">
-						<div class="countdown-value" id="cd-minutes">--</div>
-						<div class="countdown-label">Minutes</div>
-					</div>
-					<div class="countdown-block">
-						<div class="countdown-value" id="cd-seconds">--</div>
-						<div class="countdown-label">Seconds</div>
-					</div>
-				</div>
-				<p class="coming-text">
-					Join us for an epic 12-hour cycling adventure through Lakewood! Whether you ride for 1 hour or the full 12, come explore our city on two wheels.
-				</p>
-				<div class="coming-pill">
-					<span class="dot"></span>
-					<span>Site in progress</span>
-				</div>
-				<p class="coming-helper">
-					Want to test the route analyzer?&nbsp;<a class="coming-link" href="/distance-calculator/">Open distance calculator</a>
-				</p>
-				<script>
-					(() => {
-						// Countdown target: July 11th, 2026 at 8:00am in Eastern time (Lakewood, OH).
-						// Using an explicit UTC offset keeps it deterministic for this demo.
-						const targetMs = new Date('2026-07-11T08:00:00-04:00').getTime();
+<Layout
+  title="Tour de Lakewood"
+  description="The greatest 12-hour cycling event in Lakewood, Ohio. Free, self-guided, and open to all. July 11th, 2026."
+>
+  <!-- BLACK HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-left">
+        <p class="grand-depart">Grand Départ &mdash; July 11, 2026</p>
+        <h1 class="hero-h1">
+          Tour<br />
+          <em>de</em><br />
+          Lakewood
+        </h1>
+        <p class="hero-subtitle">
+          12 hours. One city. Every street, every block, every neighborhood. The most epic
+          community cycling event Lakewood, Ohio has ever seen &mdash; or likely will ever see.
+        </p>
+        <div class="hero-cta">
+          <a href="/about" class="btn-yellow">Learn about the ride</a>
+          <a href="/distance-calculator" class="btn-ghost">Route Analyzer</a>
+        </div>
+      </div>
 
-						const daysEl = document.getElementById('cd-days');
-						const minutesEl = document.getElementById('cd-minutes');
-						const secondsEl = document.getElementById('cd-seconds');
-						if (!daysEl || !minutesEl || !secondsEl) return;
+      <div class="hero-right">
+        <div class="countdown-card">
+          <p class="cd-eyebrow">Le Départ dans&hellip;</p>
+          <div class="countdown" aria-label="Countdown to July 11, 2026 at 8:00 AM">
+            <div class="cd-block">
+              <span class="cd-val" id="cd-days">00</span>
+              <span class="cd-unit">Days</span>
+            </div>
+            <span class="cd-sep" aria-hidden="true">:</span>
+            <div class="cd-block">
+              <span class="cd-val" id="cd-hours">00</span>
+              <span class="cd-unit">Hrs</span>
+            </div>
+            <span class="cd-sep" aria-hidden="true">:</span>
+            <div class="cd-block">
+              <span class="cd-val" id="cd-mins">00</span>
+              <span class="cd-unit">Min</span>
+            </div>
+            <span class="cd-sep" aria-hidden="true">:</span>
+            <div class="cd-block">
+              <span class="cd-val" id="cd-secs">00</span>
+              <span class="cd-unit">Sec</span>
+            </div>
+          </div>
+          <div class="cd-meta">
+            <div class="cd-meta-row">Saturday, July 11th, 2026</div>
+            <div class="cd-meta-row">8:00 AM &ndash; 8:00 PM Eastern</div>
+            <div class="cd-meta-row">Lakewood, Ohio (city-wide)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-						const pad2 = (n: number) => String(n).padStart(2, '0');
+  <!-- YELLOW TICKER -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-inner">
+      <span>FREE TO ENTER</span>
+      <span class="t-dot">&middot;</span>
+      <span>ALL SKILL LEVELS</span>
+      <span class="t-dot">&middot;</span>
+      <span>SELF-GUIDED</span>
+      <span class="t-dot">&middot;</span>
+      <span>JULY 11, 2026</span>
+      <span class="t-dot">&middot;</span>
+      <span>LAKEWOOD, OH</span>
+      <span class="t-dot">&middot;</span>
+      <span>12 HOURS</span>
+      <span class="t-dot">&middot;</span>
+      <span>NO MANDATORY ROUTE</span>
+    </div>
+  </div>
 
-						const update = () => {
-							const nowMs = Date.now();
-							let diffMs = targetMs - nowMs;
-							if (diffMs < 0) diffMs = 0;
+  <!-- WHAT IS IT -->
+  <section class="section-white">
+    <div class="container">
+      <div class="editorial-grid">
+        <div class="editorial-label">
+          <p class="section-tag">The Event</p>
+        </div>
+        <div class="editorial-body">
+          <h2 class="section-h2">The greatest cycling event<br />Lakewood has ever hosted.</h2>
+          <p class="section-body">
+            Tour de Lakewood is a free, self-guided 12-hour cycling event set entirely within the
+            city limits of Lakewood, Ohio. No mandatory course. No entry fee. No peloton
+            blocking traffic on Detroit Avenue.
+          </p>
+          <p class="section-body">
+            Riders choose their own route, their own pace, and their own distance. Race for 12
+            hours straight or cruise for one. The only rule: have fun and try to cover more of
+            this great city than everyone else.
+          </p>
+          <a href="/about" class="text-cta">Full event details &rarr;</a>
+        </div>
+      </div>
+    </div>
+  </section>
 
-							const totalSeconds = Math.floor(diffMs / 1000);
-							const days = Math.floor(totalSeconds / 86400);
-							const minutes = Math.floor((totalSeconds % 3600) / 60);
-							const seconds = totalSeconds % 60;
+  <!-- STAGE CARDS -->
+  <section class="stage-section">
+    <div class="container">
+      <p class="section-tag-light">The Numbers</p>
+      <div class="stage-grid">
+        <div class="stage-card">
+          <div class="stage-num">12H</div>
+          <div class="stage-lbl">Duration</div>
+          <p class="stage-desc">8 AM to 8 PM. Arrive whenever. Stay as long as you like.</p>
+        </div>
+        <div class="stage-card stage-card--yellow">
+          <div class="stage-num">$0</div>
+          <div class="stage-lbl">Entry Fee</div>
+          <p class="stage-desc">Completely free. No registration, no waivers, no bibs.</p>
+        </div>
+        <div class="stage-card">
+          <div class="stage-num">&infin;</div>
+          <div class="stage-lbl">Distance</div>
+          <p class="stage-desc">No minimum, no maximum. One mile or fifty &mdash; your race, your rules.</p>
+        </div>
+        <div class="stage-card">
+          <div class="stage-num">5.5<span class="stage-unit">mi&sup2;</span></div>
+          <div class="stage-lbl">The Arena</div>
+          <p class="stage-desc">The full 5.5 square miles of Lakewood, Ohio. Every street, fair game.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-							daysEl.textContent = String(days);
-							minutesEl.textContent = pad2(minutes);
-							secondsEl.textContent = pad2(seconds);
-						};
+  <!-- ROUTE ANALYZER CTA -->
+  <section class="analyzer-section">
+    <div class="container">
+      <div class="analyzer-inner">
+        <div class="analyzer-text">
+          <p class="section-tag">Route Analyzer</p>
+          <h2 class="analyzer-h2">Measure every meter<br />inside Lakewood.</h2>
+          <p class="analyzer-body">
+            Upload a GPX file from Strava, Garmin, or any GPS device. The route analyzer
+            calculates exactly how many miles of your ride fell inside Lakewood city limits &mdash;
+            and what percentage of the city you covered. Compare multiple rides. Declare a winner.
+          </p>
+          <a href="/distance-calculator" class="btn-black">Open Route Analyzer &rarr;</a>
+        </div>
+        <div class="analyzer-graphic" aria-hidden="true">
+          <div class="mock-card">
+            <div class="mock-val">12.4</div>
+            <div class="mock-lbl">Miles in Lakewood</div>
+            <div class="mock-bar-wrap">
+              <div class="mock-bar">
+                <div class="mock-fill" style="width:68%"></div>
+              </div>
+              <span class="mock-pct">68.2%</span>
+            </div>
+            <div class="mock-sub">of Lakewood city covered</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
 
-						update();
-						setInterval(update, 1000);
-					})();
-				</script>
-			</section>
-		</main>
-	</body>
-</html>
+<script>
+  (() => {
+    const TARGET = new Date('2026-07-11T08:00:00-04:00').getTime();
+    const pad = (n: number) => String(n).padStart(2, '0');
+
+    const tick = () => {
+      const diff = Math.max(0, TARGET - Date.now());
+      const s = Math.floor(diff / 1000);
+      const days  = Math.floor(s / 86400);
+      const hours = Math.floor((s % 86400) / 3600);
+      const mins  = Math.floor((s % 3600) / 60);
+      const secs  = s % 60;
+
+      const d = document.getElementById('cd-days');
+      const h = document.getElementById('cd-hours');
+      const m = document.getElementById('cd-mins');
+      const sc = document.getElementById('cd-secs');
+
+      if (d)  d.textContent  = String(days);
+      if (h)  h.textContent  = pad(hours);
+      if (m)  m.textContent  = pad(mins);
+      if (sc) sc.textContent = pad(secs);
+    };
+
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>
 
 <style>
-	:root {
-		color-scheme: light;
-		--bg: #f5f5f5;
-		--bg-hero: linear-gradient(180deg, #ffffff 0%, #f4f4f4 55%, #eeeeee 100%);
-		--card-bg: #ffffff;
-		--card-border: #e5e5e5;
-		--accent: #ffd800;
-		--accent-soft: rgba(255, 216, 0, 0.18);
-		--accent-strong: rgba(0, 0, 0, 0.9);
-		--text-main: #1b1b1b;
-		--text-muted: #666666;
-		--text-soft: #999999;
-	}
+  /* ---- Hero ---- */
+  .hero {
+    background: var(--black);
+    padding: 4.5rem 1.5rem 4rem;
+  }
 
-	*,
-	*::before,
-	*::after {
-		box-sizing: border-box;
-	}
+  .hero-inner {
+    max-width: var(--container);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 3.5rem;
+    align-items: start;
+  }
 
-	html,
-	body {
-		margin: 0;
-		padding: 0;
-		min-height: 100%;
-		font-family: 'Barlow', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-		background: var(--bg);
-		color: var(--text-main);
-	}
+  .grand-depart {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--yellow);
+    font-weight: 600;
+    margin: 0 0 1.25rem;
+  }
 
-	body {
-		margin: 0;
-		min-height: 100vh;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: radial-gradient(circle at top left, #ffffff 0%, #f7f7f7 55%, #eaeaea 100%);
-	}
+  .hero-h1 {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: clamp(5rem, 13vw, 10rem);
+    font-weight: 800;
+    line-height: 0.88;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: var(--white);
+    margin: 0 0 1.5rem;
+  }
 
-	.coming-soon {
-		width: 100%;
-		max-width: 720px;
-		padding: 2.5rem 1.75rem 3rem;
-	}
+  .hero-h1 em {
+    font-style: normal;
+    color: var(--yellow);
+  }
 
-	.coming-hero {
-		background: #ffffff;
-		border-radius: 1.5rem;
-		padding: 2.25rem 2.1rem 2.4rem;
-		border: 1px solid #e3e3e3;
-		box-shadow: 0 26px 60px rgba(0, 0, 0, 0.12);
-		text-align: left;
-	}
+  .hero-subtitle {
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: #aaa;
+    max-width: 30rem;
+    margin: 0 0 2rem;
+  }
 
-	.coming-logo {
-		display: block;
-		max-width: 260px;
-		width: 70%;
-		margin-bottom: 1.75rem;
-	}
+  .hero-cta { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 
-	.coming-eyebrow {
-		font-size: 0.8rem;
-		text-transform: uppercase;
-		letter-spacing: 0.22em;
-		color: #999999;
-		margin: 0 0 0.6rem;
-	}
+  .btn-yellow {
+    display: inline-block;
+    background: var(--yellow);
+    color: var(--black);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.35rem;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .btn-yellow:hover { background: #ffe940; }
 
-	h1 {
-		font-family: 'Barlow Condensed', system-ui, sans-serif;
-		font-size: clamp(2.1rem, 3vw, 2.6rem);
-		line-height: 1.05;
-		margin: 0 0 0.9rem;
-		color: #1b1b1b;
-	}
+  .btn-ghost {
+    display: inline-block;
+    background: transparent;
+    color: var(--white);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.35rem;
+    border: 2px solid rgba(255,255,255,0.25);
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.6); }
 
-	.coming-text {
-		margin: 0 0 1.6rem;
-		color: #555555;
-		font-size: 0.98rem;
-		max-width: 32rem;
-	}
+  .btn-black {
+    display: inline-block;
+    background: var(--black);
+    color: var(--white);
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.35rem;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .btn-black:hover { background: #222; }
 
-	.coming-pill {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.55rem 0.9rem;
-		border-radius: 999px;
-		background: #fffbe6;
-		border: 1px solid #f5d200;
-		color: #663c00;
-		font-size: 0.82rem;
-	}
+  /* Countdown card */
+  .countdown-card {
+    background: #141414;
+    border: 1px solid #2a2a2a;
+    border-radius: var(--radius);
+    padding: 1.75rem 1.5rem;
+  }
 
-	.coming-pill .dot {
-		width: 8px;
-		height: 8px;
-		border-radius: 999px;
-		background: #f59e0b;
-		box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.25);
-	}
+  .cd-eyebrow {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #999;
+    font-style: italic;
+    margin: 0 0 1rem;
+  }
 
-	.coming-helper {
-		margin: 1.25rem 0 0;
-		color: #666666;
-		font-size: 0.92rem;
-	}
+  .countdown {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.25rem;
+    margin-bottom: 1.5rem;
+  }
 
-	.coming-link {
-		color: #1b1b1b;
-		text-decoration: none;
-		border-bottom: 2px solid rgba(17, 17, 17, 0.25);
-		transition: border-color 0.2s ease;
-		font-weight: 600;
-	}
+  .cd-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+  }
 
-	.coming-link:hover {
-		border-bottom-color: #f5d200;
-	}
+  .cd-val {
+    display: block;
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 3.25rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--yellow);
+    min-width: 72px;
+    text-align: center;
+  }
 
-	.countdown {
-		margin: 1.05rem 0 1.35rem;
-		display: flex;
-		gap: 0.65rem;
-	}
+  .cd-unit {
+    display: block;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #999;
+  }
 
-	.countdown-block {
-		flex: 1;
-		background: #fffbe6;
-		border: 1px solid #f5d200;
-		border-radius: 1rem;
-		padding: 0.9rem 0.65rem 0.75rem;
-		text-align: center;
-	}
+  .cd-sep {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 3.25rem;
+    font-weight: 700;
+    color: #2a2a2a;
+    line-height: 1;
+    flex-shrink: 0;
+    /* nudge down to optically center with the numbers */
+    padding-top: 0.05em;
+  }
 
-	.countdown-value {
-		font-family: 'Barlow Condensed', system-ui, sans-serif;
-		font-size: 2.05rem;
-		line-height: 1;
-		color: #1b1b1b;
-	}
+  .cd-meta { display: flex; flex-direction: column; gap: 0.55rem; }
 
-	.countdown-label {
-		margin-top: 0.35rem;
-		font-size: 0.78rem;
-		text-transform: uppercase;
-		letter-spacing: 0.18em;
-		color: #666666;
-	}
+  .cd-meta-row {
+    font-size: 1rem;
+    color: #aaa;
+  }
 
-	@media (max-width: 640px) {
-		.coming-soon {
-			padding-inline: 1.25rem;
-		}
+  /* ---- Ticker ---- */
+  .ticker {
+    background: var(--yellow);
+    border-top: 2px solid var(--yellow-border);
+    border-bottom: 2px solid var(--yellow-border);
+    padding: 0.7rem 0;
+    overflow: hidden;
+  }
 
-		.coming-hero {
-			padding: 1.9rem 1.6rem 2.1rem;
-		}
+  .ticker-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--black);
+    flex-wrap: wrap;
+  }
 
-		.coming-logo {
-			max-width: 220px;
-		}
+  .t-dot { color: rgba(0,0,0,0.3); }
 
-		.countdown {
-			gap: 0.5rem;
-		}
+  /* ---- Shared section base ---- */
+  .container { max-width: var(--container); margin: 0 auto; }
 
-		.countdown-value {
-			font-size: 1.75rem;
-		}
-	}
+  .section-tag {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-soft);
+    font-weight: 700;
+    margin: 0 0 1.25rem;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--yellow);
+  }
+
+  .section-tag-light {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: #999;
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--yellow);
+  }
+
+  .section-h2 {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    line-height: 1.02;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    margin: 0 0 1.1rem;
+    color: var(--text);
+  }
+
+  .section-body {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+    margin: 0 0 0.85rem;
+    max-width: 38rem;
+  }
+
+  .text-cta {
+    display: inline-block;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 2px solid var(--yellow);
+    padding-bottom: 2px;
+    margin-top: 0.5rem;
+    transition: border-color 0.15s;
+  }
+  .text-cta:hover { border-color: var(--text); }
+
+  /* ---- What is it ---- */
+  .section-white {
+    background: var(--white);
+    padding: 5.5rem 1.5rem;
+    border-bottom: 1px solid #e8e8e8;
+  }
+
+  .editorial-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 3.5rem;
+    align-items: start;
+  }
+
+  .editorial-label { padding-top: 0.4rem; }
+
+  /* ---- Stage cards ---- */
+  .stage-section {
+    background: var(--black);
+    padding: 5rem 1.5rem;
+  }
+
+  .stage-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid #1e1e1e;
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+
+  .stage-card {
+    background: #141414;
+    padding: 2rem 1.5rem;
+    border-right: 1px solid #1e1e1e;
+  }
+
+  .stage-card:last-child { border-right: none; }
+
+  .stage-card--yellow {
+    background: var(--yellow);
+  }
+
+  .stage-card--yellow .stage-num,
+  .stage-card--yellow .stage-lbl,
+  .stage-card--yellow .stage-desc { color: var(--black); }
+
+  .stage-card--yellow .stage-lbl { color: #444; }
+  .stage-card--yellow .stage-desc { color: #555; }
+
+  .stage-num {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 3.25rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--yellow);
+    margin-bottom: 0.2rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.1rem;
+  }
+
+  .stage-unit {
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+
+  .stage-lbl {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #999;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+  }
+
+  .stage-desc {
+    font-size: 1rem;
+    line-height: 1.55;
+    color: #aaa;
+    margin: 0;
+  }
+
+  /* ---- Route Analyzer CTA ---- */
+  .analyzer-section {
+    background: var(--white);
+    padding: 5.5rem 1.5rem;
+    border-top: 1px solid #e8e8e8;
+  }
+
+  .analyzer-inner {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .analyzer-h2 {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    line-height: 1.02;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    margin: 0 0 1rem;
+    color: var(--text);
+  }
+
+  .analyzer-body {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+    margin: 0 0 1.5rem;
+    max-width: 34rem;
+  }
+
+  /* Mock card */
+  .mock-card {
+    background: var(--black);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    color: var(--white);
+  }
+
+  .mock-val {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--yellow);
+    line-height: 1;
+  }
+
+  .mock-lbl {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #999;
+    margin-bottom: 1rem;
+    margin-top: 0.15rem;
+  }
+
+  .mock-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .mock-bar {
+    flex: 1;
+    height: 6px;
+    background: #222;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .mock-fill {
+    height: 100%;
+    background: var(--yellow);
+    border-radius: 3px;
+  }
+
+  .mock-pct {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--yellow);
+    flex-shrink: 0;
+  }
+
+  .mock-sub {
+    font-size: 1rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 960px) {
+    .hero-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+    .editorial-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+    .stage-grid { grid-template-columns: repeat(2, 1fr); }
+    .stage-card { border-right: none; border-bottom: 1px solid #1e1e1e; }
+    .stage-card:nth-child(odd) { border-right: 1px solid #1e1e1e; }
+    .stage-card:nth-child(3),
+    .stage-card:nth-child(4) { border-bottom: none; }
+    .analyzer-inner { grid-template-columns: 1fr; }
+    .analyzer-graphic { display: none; }
+  }
+
+  @media (max-width: 560px) {
+    .hero { padding: 3rem 1.25rem 3rem; }
+    .section-white, .analyzer-section { padding: 3.5rem 1.25rem; }
+    .stage-section { padding: 3.5rem 1.25rem; }
+    .stage-grid { grid-template-columns: 1fr; }
+    .stage-card { border-right: none !important; }
+    .stage-card:last-child { border-bottom: none; }
+    .cd-val { font-size: 2.5rem; min-width: 54px; }
+    .countdown { gap: 0.25rem; }
+  }
 </style>
