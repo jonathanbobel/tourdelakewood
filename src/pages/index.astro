@@ -197,7 +197,7 @@ import Layout from '../layouts/Layout.astro';
 <style>
   /* ---- Hero ---- */
   .hero {
-    background: var(--black);
+    background: var(--purple);
     padding: 4.5rem 1.5rem 4rem;
   }
 
@@ -238,7 +238,7 @@ import Layout from '../layouts/Layout.astro';
   .hero-subtitle {
     font-size: 1.05rem;
     line-height: 1.65;
-    color: #aaa;
+    color: #ccc;
     max-width: 30rem;
     margin: 0 0 2rem;
   }
@@ -258,7 +258,7 @@ import Layout from '../layouts/Layout.astro';
     text-decoration: none;
     transition: background 0.15s;
   }
-  .btn-yellow:hover { background: #ffe940; }
+  .btn-yellow:hover { background: #F5B400; }
 
   .btn-ghost {
     display: inline-block;
@@ -278,7 +278,7 @@ import Layout from '../layouts/Layout.astro';
 
   .btn-black {
     display: inline-block;
-    background: var(--black);
+    background: var(--purple);
     color: var(--white);
     font-weight: 700;
     font-size: 1rem;
@@ -293,8 +293,8 @@ import Layout from '../layouts/Layout.astro';
 
   /* Countdown card */
   .countdown-card {
-    background: #141414;
-    border: 1px solid #2a2a2a;
+    background: #1b1b1b;
+    border: 1px solid #333;
     border-radius: var(--radius);
     padding: 1.75rem 1.5rem;
   }
@@ -402,7 +402,7 @@ import Layout from '../layouts/Layout.astro';
     font-size: 1rem;
     text-transform: uppercase;
     letter-spacing: 0.16em;
-    color: #999;
+    color: #ccc;
     font-weight: 700;
     margin: 0 0 1.5rem;
     padding-left: 0.75rem;
@@ -461,22 +461,22 @@ import Layout from '../layouts/Layout.astro';
 
   /* ---- Stage cards ---- */
   .stage-section {
-    background: var(--black);
+    background: var(--purple);
     padding: 5rem 1.5rem;
   }
 
   .stage-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    border: 1px solid #1e1e1e;
+    border: 1px solid #2a2a2a;
     border-radius: 0.75rem;
     overflow: hidden;
   }
 
   .stage-card {
-    background: #141414;
+    background: #1b1b1b;
     padding: 2rem 1.5rem;
-    border-right: 1px solid #1e1e1e;
+    border-right: 1px solid #2a2a2a;
   }
 
   .stage-card:last-child { border-right: none; }
@@ -560,7 +560,7 @@ import Layout from '../layouts/Layout.astro';
 
   /* Mock card */
   .mock-card {
-    background: var(--black);
+    background: #1b1b1b;
     border-radius: var(--radius);
     padding: 1.75rem;
     color: var(--white);
@@ -624,8 +624,8 @@ import Layout from '../layouts/Layout.astro';
     .hero-inner { grid-template-columns: 1fr; gap: 2.5rem; }
     .editorial-grid { grid-template-columns: 1fr; gap: 1.25rem; }
     .stage-grid { grid-template-columns: repeat(2, 1fr); }
-    .stage-card { border-right: none; border-bottom: 1px solid #1e1e1e; }
-    .stage-card:nth-child(odd) { border-right: 1px solid #1e1e1e; }
+    .stage-card { border-right: none; border-bottom: 1px solid #2a2a2a; }
+    .stage-card:nth-child(odd) { border-right: 1px solid #2a2a2a; }
     .stage-card:nth-child(3),
     .stage-card:nth-child(4) { border-bottom: none; }
     .analyzer-inner { grid-template-columns: 1fr; }

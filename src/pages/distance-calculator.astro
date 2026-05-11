@@ -41,7 +41,7 @@ import Layout from '../layouts/Layout.astro';
       <p class="eyebrow">Tour de Lakewood &rsaquo; Route Analyzer</p>
       <h1 class="page-h1">
         Route<br />
-        <em>Analyzer.</em>
+        <em>Analyzer</em>
       </h1>
       <p class="page-sub">
         Upload your GPX files and see exactly how many miles of your ride
@@ -304,7 +304,7 @@ import Layout from '../layouts/Layout.astro';
     }).addTo(map);
 
     L.geoJSON(lakewoodBoundary, {
-      style: { color: '#ffd800', weight: 2, fillColor: '#ffd800', fillOpacity: 0.07 }
+      style: { color: '#F2A900', weight: 2, fillColor: '#F2A900', fillOpacity: 0.07 }
     }).addTo(map).bindPopup('Lakewood, OH city boundary');
   }
 
@@ -374,7 +374,7 @@ import Layout from '../layouts/Layout.astro';
     resultsEl.innerHTML = '<div class="analyzing"><div class="spinner"></div><p>Analyzing GPX files&hellip;</p></div>';
 
     analysisResults = [];
-    const colors = ['#ffd800', '#E25A28', '#1C8282', '#aaaaaa', '#ff6b6b', '#4ecdc4'];
+    const colors = ['#F2A900', '#E25A28', '#1C8282', '#aaaaaa', '#ff6b6b', '#4ecdc4'];
     const lakewoodAreaSqMi = turf.area(lakewoodBoundary) / 2589988.11;
 
     try {
@@ -493,7 +493,7 @@ import Layout from '../layouts/Layout.astro';
 
   /* Page hero */
   .page-hero {
-    background: var(--black);
+    background: var(--purple);
     padding: 4.5rem 1.5rem 4rem;
   }
 
@@ -523,7 +523,7 @@ import Layout from '../layouts/Layout.astro';
   .page-sub {
     font-size: 1rem;
     line-height: 1.65;
-    color: #aaa;
+    color: #ccc;
     max-width: 34rem;
     margin: 0;
   }
@@ -544,8 +544,8 @@ import Layout from '../layouts/Layout.astro';
 
   /* Status bar */
   .status-bar {
-    background: #141414;
-    border: 1px solid #2a2a2a;
+    background: #1b1b1b;
+    border: 1px solid #333;
     border-radius: 0.5rem;
     padding: 0.75rem 1rem;
     font-size: 1rem;
@@ -556,7 +556,7 @@ import Layout from '../layouts/Layout.astro';
   .status-bar--ok {
     color: var(--yellow);
     border-color: rgba(255, 216, 0, 0.4);
-    background: #141414;
+    background: #1b1b1b;
   }
 
   /* Drop zone */
@@ -643,7 +643,7 @@ import Layout from '../layouts/Layout.astro';
     width: 100%;
   }
 
-  .analyze-btn:hover:not(:disabled) { background: #ffe940; }
+  .analyze-btn:hover:not(:disabled) { background: #F5B400; }
 
   .analyze-btn:disabled {
     background: var(--card-border);

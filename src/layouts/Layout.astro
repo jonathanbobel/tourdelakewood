@@ -49,6 +49,14 @@ const navLinks = [
       href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700;800&display=swap"
     />
     <slot name="head" />
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-H3YPPYY6Z1"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-H3YPPYY6Z1');
+    </script>
   </head>
   <body>
     <header class="l-header">
@@ -122,9 +130,10 @@ const navLinks = [
 <style is:global>
   :root {
     --black: #0d0d0d;
-    --yellow: #ffd800;
-    --yellow-border: #e5c200;
-    --yellow-bg: #fffbe6;
+    --purple: #5F259F;
+    --yellow: #F2A900;
+    --yellow-border: #D99600;
+    --yellow-bg: #FEF6E6;
     --white: #ffffff;
     --gray-light: #f4f4f4;
     --card-border: #e3e3e3;
@@ -243,7 +252,7 @@ const navLinks = [
   .l-hamburger.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
   .l-footer {
-    background: var(--black);
+    background: var(--purple);
     padding: 2rem 1.5rem;
   }
 
