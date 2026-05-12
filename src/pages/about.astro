@@ -48,6 +48,12 @@ import Layout from '../layouts/Layout.astro';
           <p class="prose">
             The first edition took place in 2025 &mdash; a small, informal ride with a handful of people, three categories, and more questions than answers. We&rsquo;re still figuring it out as we go. 2026 is the second year, and we&rsquo;re hoping it&rsquo;s bigger and slightly better organized.
           </p>
+          <p class="prose">
+            Tour de Lakewood is organized in affiliation with <a href="https://www.bikecleveland.org/bikelakewood/" class="prose-link" target="_blank" rel="noopener">Bike Lakewood</a>, the local branch of Bike Cleveland working to make Lakewood a more bikeable city.
+          </p>
+          <a href="https://www.bikecleveland.org/bikelakewood/" target="_blank" rel="noopener" class="bike-lkwd-logo-link">
+            <img src="https://www.bikecleveland.org/wp-content/uploads/2015/03/bikelkwd-logo-2color-screen-e1508261291246.png" alt="Bike Lakewood" class="bike-lkwd-logo" />
+          </a>
         </div>
       </div>
     </div>
@@ -340,6 +346,16 @@ import Layout from '../layouts/Layout.astro';
     color: var(--text-muted);
     margin: 0 0 1rem;
   }
+
+  .prose-link {
+    color: var(--purple);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .prose-link:hover { color: var(--text); }
+
+  .bike-lkwd-logo-link { display: inline-block; margin-top: 0.5rem; }
+  .bike-lkwd-logo { height: 250px; width: auto; display: block; }
 
   /* ---- Prose layout ---- */
   .prose-layout {

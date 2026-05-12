@@ -54,11 +54,6 @@ import Layout from '../layouts/Layout.astro';
   <section class="tool-section">
     <div class="tool-container">
 
-      <!-- Boundary status -->
-      <div class="status-bar" id="boundaryStatus">
-        Loading Lakewood city boundary&hellip;
-      </div>
-
       <!-- Drop zone -->
       <div class="drop-zone" id="fileInputContainer">
         <p class="drop-label">Drop GPX files here or click to upload</p>
@@ -292,12 +287,6 @@ import Layout from '../layouts/Layout.astro';
   let analysisResults = [];
 
   async function initMap() {
-    const statusEl = document.getElementById('boundaryStatus');
-    if (statusEl) {
-      statusEl.textContent = '✅ Lakewood city boundary loaded';
-      statusEl.classList.add('status-bar--ok');
-    }
-
     map = L.map('map').setView([41.4856, -81.8017], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
