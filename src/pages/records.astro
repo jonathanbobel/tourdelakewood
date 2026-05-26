@@ -1,0 +1,506 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Records"
+  description="All-time Tour de Lakewood records for map coverage, distance, and elevation — currently held by Nat Simonetti."
+>
+  <link slot="head" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script is:inline slot="head" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script is:inline slot="head" src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+
+  <style is:global>
+    #coverage-map { height: 480px; border-radius: 0 0 0.65rem 0.65rem; overflow: hidden; }
+  </style>
+
+  <!-- Hero -->
+  <section class="page-hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Tour de Lakewood &rsaquo; Records</p>
+      <h1 class="page-h1">
+        All&#8209;Time<br />
+        <em>Records</em>
+      </h1>
+      <p class="page-sub">
+        The marks to beat. Three categories, one record holder &mdash; for now.
+      </p>
+    </div>
+  </section>
+
+  <!-- Records -->
+  <section class="records-section">
+    <div class="records-container">
+
+      <p class="section-tag">All-Time Records</p>
+
+      <!-- Coverage record — full width -->
+      <div class="record-card record-card--dark">
+        <div class="rc-top">
+          <div class="rc-meta">
+            <span class="rc-category">Map Coverage</span>
+            <span class="rc-holder-row">
+              <span class="rc-crown" aria-hidden="true">&#9812;</span>
+              <span class="rc-holder">Nat Simonetti</span>
+            </span>
+          </div>
+          <div class="rc-stat-block">
+            <div class="rc-loading-state" id="coverage-loading">
+              <div class="rc-spinner"></div>
+              <span>Computing&hellip;</span>
+            </div>
+            <div class="rc-stat-inner" id="coverage-stat" style="display:none">
+              <span class="rc-big" id="coverage-pct">—</span>
+              <span class="rc-unit">of Lakewood covered</span>
+            </div>
+          </div>
+        </div>
+        <div class="map-wrap">
+          <div id="coverage-map"></div>
+        </div>
+      </div>
+
+      <!-- Distance + Elevation side by side -->
+      <div class="record-pair">
+
+        <div class="record-card record-card--light" data-countup data-target="117.96" data-decimals="2" data-id="dist-val">
+          <span class="rc-category">Total Distance</span>
+          <div class="rc-holder-row">
+            <span class="rc-crown" aria-hidden="true">&#9812;</span>
+            <span class="rc-holder">Nat Simonetti</span>
+          </div>
+          <div class="rc-stat-block rc-stat-block--center">
+            <span class="rc-big rc-big--yellow" id="dist-val">0.00</span>
+            <span class="rc-unit">miles</span>
+          </div>
+          <p class="rc-note">Total distance ridden within Lakewood city limits</p>
+        </div>
+
+        <div class="record-card record-card--light" data-countup data-target="4171" data-decimals="0" data-id="ele-val">
+          <span class="rc-category">Elevation Gain</span>
+          <div class="rc-holder-row">
+            <span class="rc-crown" aria-hidden="true">&#9812;</span>
+            <span class="rc-holder">Nat Simonetti</span>
+          </div>
+          <div class="rc-stat-block rc-stat-block--center">
+            <span class="rc-big rc-big--yellow" id="ele-val">0</span>
+            <span class="rc-unit">feet</span>
+          </div>
+          <p class="rc-note">Total elevation gain across the full ride</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  // @ts-nocheck
+  const LAKEWOOD = {
+    type: 'Feature',
+    geometry: {
+      type: 'Polygon',
+      coordinates: [[
+        [-81.843982,41.494593],[-81.840659,41.492346],[-81.836965,41.489937],
+        [-81.836059,41.489347],[-81.835058,41.488847],[-81.833858,41.487847],
+        [-81.832306,41.486416],[-81.8317644,41.4856877],[-81.8314012,41.4848328],
+        [-81.8312016,41.4843079],[-81.8312026,41.4831243],[-81.8313019,41.4827507],
+        [-81.8315987,41.4819781],[-81.8329701,41.4804274],[-81.833953,41.478713],
+        [-81.833234,41.47705],[-81.830219,41.476886],[-81.829414,41.477167],
+        [-81.827639,41.477708],[-81.8273635,41.4776805],[-81.821904,41.477136],
+        [-81.823559,41.474849],[-81.823706,41.4741125],[-81.8238047,41.4736178],
+        [-81.824158,41.471848],[-81.82403,41.471438],[-81.824058,41.470748],
+        [-81.825185,41.470736],[-81.826323,41.469962],[-81.827374,41.470757],
+        [-81.832243,41.470875],[-81.832698,41.470485],[-81.832806,41.470485],
+        [-81.8330821,41.4705254],[-81.833903,41.470654],[-81.834089,41.470667],
+        [-81.837112,41.469134],[-81.837139,41.469041],[-81.837488,41.468023],
+        [-81.837624,41.467601],[-81.837271,41.467263],[-81.8368,41.466018],
+        [-81.835608,41.464919],[-81.836573,41.464596],[-81.837358,41.464247],
+        [-81.837258,41.463447],[-81.834958,41.463247],[-81.834058,41.464347],
+        [-81.833623,41.464202],[-81.833158,41.464048],[-81.832958,41.463648],
+        [-81.831958,41.463248],[-81.832143,41.464651],[-81.832867,41.464752],
+        [-81.8336,41.465345],[-81.836119,41.467387],[-81.83553,41.469617],
+        [-81.8331771,41.4693027],[-81.8326776,41.4692177],[-81.831941,41.468941],
+        [-81.830089,41.468101],[-81.8261684,41.4681343],[-81.824558,41.468148],
+        [-81.8221175,41.4681358],[-81.8208104,41.468124],[-81.8195138,41.4681122],
+        [-81.8189816,41.4681122],[-81.8184713,41.4681472],[-81.818063,41.468145],
+        [-81.8177062,41.4680863],[-81.8173772,41.4680016],[-81.8167526,41.4678425],
+        [-81.8163369,41.4677517],[-81.815674,41.467529],[-81.8152641,41.4680553],
+        [-81.8141418,41.4680332],[-81.8118693,41.4680132],[-81.8107805,41.4680092],
+        [-81.8106005,41.468006],[-81.810396,41.468003],[-81.8104472,41.4690603],
+        [-81.8106017,41.4694904],[-81.8107572,41.4695527],[-81.8107492,41.4697678],
+        [-81.810357,41.469941],[-81.8088086,41.4699566],[-81.806064,41.470083],
+        [-81.804739,41.470148],[-81.803435,41.470042],[-81.80053,41.470008],
+        [-81.799999,41.469922],[-81.7974059,41.469929],[-81.7969663,41.4699415],
+        [-81.7968161,41.4699457],[-81.7965141,41.4699543],[-81.7960775,41.4699679],
+        [-81.7950413,41.4700003],[-81.7939402,41.4700198],[-81.7934539,41.470032],
+        [-81.7929386,41.4700449],[-81.792055,41.4700729],[-81.7915473,41.4700879],
+        [-81.79092,41.4701266],[-81.7903942,41.4701882],[-81.7898057,41.4702978],
+        [-81.789748,41.4703101],[-81.7896994,41.4703206],[-81.7896669,41.470326],
+        [-81.7893396,41.4703885],[-81.7890078,41.4704519],[-81.7885292,41.470451],
+        [-81.7875014,41.4704519],[-81.7865133,41.4704692],[-81.7858008,41.4704763],
+        [-81.7855427,41.4704789],[-81.7844921,41.4704795],[-81.7833725,41.4704851],
+        [-81.783059,41.470486],[-81.780453,41.469314],[-81.7793624,41.4697339],
+        [-81.7785283,41.4700563],[-81.7780534,41.4702501],[-81.7774937,41.4704882],
+        [-81.7747545,41.4715878],[-81.7728831,41.4723466],[-81.770864,41.4732132],
+        [-81.7706079,41.473329],[-81.7698487,41.4736312],[-81.7688028,41.4739999],
+        [-81.7688036,41.4746848],[-81.7688044,41.4754362],[-81.768804,41.4754918],
+        [-81.7687933,41.4769251],[-81.7687855,41.4777346],[-81.7687739,41.4789449],
+        [-81.768772,41.4794602],[-81.7687744,41.4796439],[-81.7687641,41.4798414],
+        [-81.7687604,41.4811905],[-81.76876,41.4816548],[-81.7687536,41.4822667],
+        [-81.7687488,41.4827011],[-81.7687481,41.4827647],[-81.7687375,41.4829423],
+        [-81.7687471,41.483665],[-81.7687444,41.4842515],[-81.76874,41.4852213],
+        [-81.7687404,41.4854621],[-81.7687422,41.4854739],[-81.7687444,41.4857179],
+        [-81.7687416,41.4862449],[-81.768742,41.4866069],[-81.7687424,41.4869418],
+        [-81.7687431,41.487528],[-81.7687235,41.4880629],[-81.7687173,41.4882763],
+        [-81.7687097,41.488513],[-81.7686995,41.488854],[-81.7686981,41.4889872],
+        [-81.7686736,41.4898924],[-81.7686715,41.4899705],[-81.7686713,41.4899735],
+        [-81.7686133,41.4909595],[-81.7685853,41.4913856],[-81.7685818,41.4914395],
+        [-81.7685767,41.4915172],[-81.768576,41.491636],[-81.768912,41.491664],
+        [-81.769032,41.497326],[-81.770245,41.49755],[-81.777786,41.498773],
+        [-81.782212,41.499655],[-81.784189,41.500048],[-81.78521,41.500048],
+        [-81.794234,41.500048],[-81.802425,41.500048],[-81.806419,41.499584],
+        [-81.808583,41.499332],[-81.810963,41.499172],[-81.815384,41.498806],
+        [-81.820562,41.498066],[-81.82703,41.496913],[-81.843982,41.494593]
+      ]]
+    },
+    properties: { name: 'Lakewood, OH' }
+  };
+
+  function parseGPX(xml) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, 'text/xml');
+    const coords = [];
+    doc.querySelectorAll('trkpt').forEach(pt => {
+      coords.push([parseFloat(pt.getAttribute('lon')), parseFloat(pt.getAttribute('lat'))]);
+    });
+    return coords;
+  }
+
+  function animateCount(el, from, to, duration, format) {
+    const start = performance.now();
+    function step(now) {
+      const p = Math.min(1, (now - start) / duration);
+      const ease = 1 - Math.pow(1 - p, 3);
+      el.textContent = format(from + (to - from) * ease);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function formatWithComma(v, decimals) {
+    return v.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  async function initCoverageMap() {
+    const map = L.map('coverage-map', { zoomControl: true, scrollWheelZoom: false })
+      .setView([41.4856, -81.8017], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(map);
+
+    L.geoJSON(LAKEWOOD, {
+      style: { color: '#F2A900', weight: 2.5, fillColor: '#F2A900', fillOpacity: 0.07 }
+    }).addTo(map);
+
+    let coords;
+    try {
+      const res = await fetch('/Tour_de_Lakewood.gpx');
+      const text = await res.text();
+      coords = parseGPX(text);
+    } catch (e) {
+      document.getElementById('coverage-loading').style.display = 'none';
+      document.getElementById('coverage-stat').style.display = 'flex';
+      document.getElementById('coverage-pct').textContent = '—';
+      return;
+    }
+
+    // Draw the route (full resolution for map display)
+    L.polyline(coords.map(c => [c[1], c[0]]), {
+      color: '#5F259F',
+      weight: 2.5,
+      opacity: 0.9
+    }).addTo(map);
+
+    // Compute coverage on simplified line to keep it fast
+    let pct = 0;
+    try {
+      const line = turf.lineString(coords);
+      const simplified = turf.simplify(line, { tolerance: 0.0002, highQuality: false });
+      const lakewoodAreaSqMi = turf.area(LAKEWOOD) / 2589988.11;
+      const buffered = turf.buffer(simplified, 0.01, { units: 'miles' });
+      const intersect = turf.intersect(buffered, LAKEWOOD);
+      if (intersect) {
+        const coverageArea = turf.area(intersect) / 2589988.11;
+        pct = Math.min(100, (coverageArea / lakewoodAreaSqMi) * 100);
+      }
+    } catch (_) {}
+
+    document.getElementById('coverage-loading').style.display = 'none';
+    const statEl = document.getElementById('coverage-stat');
+    statEl.style.display = 'flex';
+    const pctEl = document.getElementById('coverage-pct');
+    animateCount(pctEl, 0, pct, 1800, v => v.toFixed(1) + '%');
+  }
+
+  function setupCountUps() {
+    const cards = document.querySelectorAll('[data-countup]');
+    cards.forEach(card => {
+      const target = parseFloat(card.dataset.target);
+      const decimals = parseInt(card.dataset.decimals, 10);
+      const id = card.dataset.id;
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      let triggered = false;
+      const obs = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && !triggered) {
+          triggered = true;
+          obs.disconnect();
+          animateCount(el, 0, target, 2200, v => formatWithComma(v, decimals));
+        }
+      }, { threshold: 0.4 });
+      obs.observe(card);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initCoverageMap();
+    setupCountUps();
+  });
+</script>
+
+<style>
+  .page-hero {
+    background: var(--purple);
+    padding: 4.5rem 1.5rem 4rem;
+  }
+
+  .hero-inner { max-width: var(--container); margin: 0 auto; }
+
+  .eyebrow {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--yellow);
+    font-weight: 600;
+    margin: 0 0 1.25rem;
+  }
+
+  .page-h1 {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: clamp(4rem, 10vw, 8rem);
+    font-weight: 800;
+    line-height: 0.9;
+    text-transform: uppercase;
+    color: var(--white);
+    margin: 0 0 1.25rem;
+  }
+
+  .page-h1 em { font-style: normal; color: var(--yellow); }
+
+  .page-sub {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: #ccc;
+    max-width: 34rem;
+    margin: 0;
+  }
+
+  /* Records section */
+  .records-section {
+    background: var(--gray-light);
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  .records-container {
+    max-width: var(--container);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .section-tag {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-soft);
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--yellow);
+  }
+
+  /* Record cards */
+  .record-card {
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .record-card--dark {
+    background: #1b1b1b;
+    border: 1px solid #2a2a2a;
+  }
+
+  .record-card--light {
+    background: var(--white);
+    border: 1px solid var(--card-border);
+    padding: 2rem 1.75rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* Coverage card top bar */
+  .rc-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 1.75rem;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .rc-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .rc-category {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-weight: 700;
+    color: #aaa;
+  }
+
+  .record-card--light .rc-category {
+    color: var(--text-soft);
+  }
+
+  .rc-holder-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .rc-crown {
+    font-size: 1.1rem;
+    color: var(--yellow);
+    line-height: 1;
+  }
+
+  .rc-holder {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--white);
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  .record-card--light .rc-holder {
+    color: var(--text);
+  }
+
+  /* Stat block */
+  .rc-stat-block {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+  }
+
+  .rc-stat-block--center {
+    align-items: flex-start;
+    margin-top: auto;
+  }
+
+  .rc-big {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: clamp(3.5rem, 7vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--yellow);
+    letter-spacing: -0.02em;
+    display: block;
+  }
+
+  .rc-big--yellow { color: var(--yellow); }
+
+  .rc-unit {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #999;
+    font-weight: 600;
+  }
+
+  .record-card--light .rc-unit {
+    color: var(--text-soft);
+  }
+
+  .rc-note {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0;
+    border-top: 1px solid var(--card-border);
+    padding-top: 0.75rem;
+    margin-top: auto;
+  }
+
+  /* Loading state */
+  .rc-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+  }
+
+  .rc-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid #2a2a2a;
+    border-top-color: var(--yellow);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .rc-stat-inner {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+  }
+
+  /* Map wrapper inside coverage card */
+  .map-wrap {
+    border-top: 1px solid #2a2a2a;
+  }
+
+  /* Pair of side-by-side cards */
+  .record-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .records-section { padding: 2rem 1.25rem 4rem; }
+    .rc-top { padding: 1.25rem; }
+    .record-pair { grid-template-columns: 1fr; }
+    .rc-stat-block { align-items: flex-start; }
+    .rc-stat-inner { align-items: flex-start; }
+  }
+</style>
