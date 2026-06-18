@@ -71,13 +71,13 @@ import Layout from '../layouts/Layout.astro';
 
       <!-- Results -->
       <div id="resultsSection" class="results-section hidden">
-        <h2 class="results-title">Coverage Analysis</h2>
         <div id="results"></div>
       </div>
 
       <!-- Map -->
       <div class="map-wrap">
         <h2 class="map-title">Map</h2>
+        <div id="roadStatus" class="road-status road-status--loading">Loading road network…</div>
         <div id="map"></div>
       </div>
 
@@ -282,6 +282,112 @@ import Layout from '../layouts/Layout.astro';
     properties: { name: 'Lakewood, OH (OpenStreetMap boundary)' }
   };
 
+  // ── Road network (OSM via Overpass API) ─────────────────────────────────────
+  const OVERPASS     = 'https://overpass-api.de/api/interpreter';
+  const ROAD_CACHE_K = 'tdl_roads_v4';
+  const CACHE_TTL    = 7 * 24 * 60 * 60 * 1000;
+  const SNAP_KM      = 0.025; // 25 m buffer, same approach as Wandrer
+
+  // Rideable roads only — excludes footways, alleys, paths, service roads
+  // which inflate the count when they run parallel/adjacent to the actual route
+  const HW_FILTER = 'primary|secondary|tertiary|unclassified|residential|living_street|cycleway';
+
+  let roadNet     = null;
+  let roadPromise = null;
+  let roadLayer   = null;
+
+  async function fetchRoads() {
+    if (roadNet) return roadNet;
+    try {
+      const c = JSON.parse(localStorage.getItem(ROAD_CACHE_K));
+      if (c && Date.now() - c.ts < CACHE_TTL) { roadNet = c.d; return roadNet; }
+    } catch (_) {}
+
+    const q = `[out:json][timeout:60];(way["highway"~"^(${HW_FILTER})$"](41.463,-81.844,41.501,-81.769););out geom;`;
+    const r  = await fetch(OVERPASS, { method: 'POST', body: q });
+    if (!r.ok) throw new Error(`Overpass API error ${r.status}`);
+    const js = await r.json();
+
+    let totalMiles = 0;
+    const features = [];
+    for (const el of js.elements) {
+      if (el.type !== 'way' || !el.geometry || el.geometry.length < 2) continue;
+      const coords = el.geometry.map(n => [n.lon, n.lat]);
+      const feat = {
+        type: 'Feature',
+        properties: { id: el.id, hw: el.tags?.highway || '', name: el.tags?.name || '' },
+        geometry: { type: 'LineString', coordinates: coords }
+      };
+      if (!turf.booleanIntersects(feat, lakewoodBoundary)) continue;
+      totalMiles += turf.length(feat, { units: 'miles' });
+      features.push(feat);
+    }
+
+    roadNet = { type: 'FeatureCollection', features, totalMiles };
+    try { localStorage.setItem(ROAD_CACHE_K, JSON.stringify({ ts: Date.now(), d: roadNet })); } catch (_) {}
+    return roadNet;
+  }
+
+  function loadRoads() {
+    if (!roadPromise) roadPromise = fetchRoads();
+    return roadPromise;
+  }
+
+  function setRoadStatus(state, count) {
+    const el = document.getElementById('roadStatus');
+    if (!el) return;
+    if (state === 'loading') {
+      el.textContent = 'Loading road network…';
+      el.className = 'road-status road-status--loading';
+    } else if (state === 'ready') {
+      el.textContent = `${count.toLocaleString()} road segments loaded`;
+      el.className = 'road-status road-status--ready';
+    } else {
+      el.textContent = 'Road network unavailable';
+      el.className = 'road-status road-status--error';
+    }
+  }
+
+  function drawRoadBase(_net) {
+    // nothing — OSM tiles already show the street network
+  }
+
+  function highlightRoads(_net, _coveredIds) {
+    // nothing — road coverage is shown in the stats panel, not on the map
+  }
+
+  async function analyzeRoads(coords) {
+    const net     = await loadRoads();
+    const buf     = turf.buffer(turf.lineString(coords), SNAP_KM, { units: 'kilometers' });
+    const bufEdge = turf.polygonToLine(buf);
+    let coveredMiles = 0;
+    const coveredIds = new Set();
+    for (const road of net.features) {
+      if (!turf.booleanIntersects(road, buf)) continue;
+      // Split the road at the buffer boundary and only count the portion inside
+      let inside = 0;
+      try {
+        const split = turf.lineSplit(road, bufEdge);
+        const segs  = split.features.length > 0 ? split.features : [road];
+        for (const seg of segs) {
+          const len = turf.length(seg, { units: 'miles' });
+          if (!len) continue;
+          const mid = turf.along(seg, len / 2, { units: 'miles' });
+          if (turf.booleanPointInPolygon(mid, buf)) inside += len;
+        }
+      } catch (_) {
+        inside = turf.length(road, { units: 'miles' });
+      }
+      if (inside > 0) {
+        coveredMiles += inside;
+        coveredIds.add(road.properties.id);
+      }
+    }
+    const pct = net.totalMiles > 0 ? Math.min(100, (coveredMiles / net.totalMiles) * 100) : 0;
+    return { coveredMiles, totalMiles: net.totalMiles, pct, coveredIds, net };
+  }
+
+  // ── Map & state ───────────────────────────────────────────────────────────────
   let map;
   let files = [];
   let analysisResults = [];
@@ -293,8 +399,13 @@ import Layout from '../layouts/Layout.astro';
     }).addTo(map);
 
     L.geoJSON(lakewoodBoundary, {
-      style: { color: '#F2A900', weight: 2, fillColor: '#F2A900', fillOpacity: 0.07 }
+      style: { color: '#F2A900', weight: 2, fillColor: '#F2A900', fillOpacity: 0.05 }
     }).addTo(map).bindPopup('Lakewood, OH city boundary');
+
+    setRoadStatus('loading');
+    loadRoads()
+      .then(net => { drawRoadBase(net); setRoadStatus('ready', net.features.length); })
+      .catch(() => setRoadStatus('error'));
   }
 
   document.getElementById('fileInputContainer').addEventListener('click', () => {
@@ -357,24 +468,22 @@ import Layout from '../layouts/Layout.astro';
   }
 
   async function analyzeFiles() {
-    const section = document.getElementById('resultsSection');
+    const section   = document.getElementById('resultsSection');
     const resultsEl = document.getElementById('results');
     section.classList.remove('hidden');
-    resultsEl.innerHTML = '<div class="analyzing"><div class="spinner"></div><p>Analyzing GPX files&hellip;</p></div>';
+    resultsEl.innerHTML = '<div class="analyzing"><div class="spinner"></div><p>Loading road network &amp; analyzing GPX files&hellip;</p></div>';
 
     analysisResults = [];
     const colors = ['#F2A900', '#E25A28', '#1C8282', '#aaaaaa', '#ff6b6b', '#4ecdc4'];
-    const lakewoodAreaSqMi = turf.area(lakewoodBoundary) / 2589988.11;
 
     try {
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+        const file   = files[i];
         const coords = parseGPX(await file.text());
         if (!coords.length) throw new Error(`No coordinates found in ${file.name}`);
 
-        let distance = 0;
-        let coverageArea = 0;
-        let pct = 0;
+        // Miles of GPX track inside Lakewood boundary
+        let milesInLakewood = 0;
         let insideSegs = [];
 
         if (coords.length > 1) {
@@ -388,7 +497,7 @@ import Layout from '../layouts/Layout.astro';
                   if (!len) return;
                   const mid = turf.along(seg, len / 2, { units: 'miles' });
                   if (turf.booleanPointInPolygon(mid, lakewoodBoundary)) {
-                    distance += len;
+                    milesInLakewood += len;
                     insideSegs.push(seg.geometry.coordinates);
                   }
                 });
@@ -404,27 +513,33 @@ import Layout from '../layouts/Layout.astro';
               if (!len) continue;
               const mid = turf.point([(a[0]+b[0])/2, (a[1]+b[1])/2]);
               if (turf.booleanPointInPolygon(mid, lakewoodBoundary)) {
-                distance += len;
+                milesInLakewood += len;
                 insideSegs.push([a, b]);
               }
             }
           }
-
-          const intersect = turf.intersect(turf.buffer(line, 0.01, { units: 'miles' }), lakewoodBoundary);
-          if (intersect) {
-            coverageArea = turf.area(intersect) / 2589988.11;
-            pct = lakewoodAreaSqMi > 0 ? Math.min(100, (coverageArea / lakewoodAreaSqMi) * 100) : 0;
-          }
         }
 
+        // Road coverage via 25 m snap buffer
+        const roads = await analyzeRoads(coords);
         const color = colors[i % colors.length];
-        analysisResults.push({ name: file.name, distance, coverageArea, pct, color });
 
-        insideSegs.forEach(segCoords => {
-          if (segCoords?.length >= 2) {
-            L.polyline(segCoords.map(c => [c[1], c[0]]), { color, weight: 3, opacity: 0.85 }).addTo(map);
-          }
+        analysisResults.push({
+          name: file.name,
+          milesInLakewood,
+          roadMilesCovered: roads.coveredMiles,
+          roadMilesTotal:   roads.totalMiles,
+          roadPct:          roads.pct,
+          color,
+          insideSegs,
         });
+
+        highlightRoads(roads.net, roads.coveredIds);
+
+        // Draw the full GPS track as one polyline
+        L.polyline(coords.map(c => [c[1], c[0]]), {
+          color: '#5F259F', weight: 3.5, opacity: 0.95
+        }).addTo(map);
       }
 
       renderResults();
@@ -434,30 +549,33 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function renderResults() {
-    const sorted = [...analysisResults].sort((a, b) => b.distance - a.distance);
-    const winner = sorted[0];
+    const sorted  = [...analysisResults].sort((a, b) => b.roadPct - a.roadPct);
+    const isMulti = analysisResults.length > 1;
     let html = '';
 
-    if (winner) {
-      html += `<div class="winner-card">Winner: <strong>${winner.name}</strong> &mdash; ${winner.distance.toFixed(2)} miles in Lakewood</div>`;
-    }
-
-    analysisResults.forEach(r => {
+    sorted.forEach((r, i) => {
+      const badge = isMulti && i === 0
+        ? '<span class="rc-winner-badge">Winner</span>' : '';
       html += `
-        <div class="result-row" style="border-left-color:${r.color}">
-          <div class="result-name" style="color:${r.color}">${r.name}</div>
-          <div class="result-stats">
-            <div class="result-stat">
-              <div class="stat-val">${r.distance.toFixed(2)}</div>
-              <div class="stat-label">Miles in Lakewood</div>
+        <div class="result-card">
+          <div class="rc-top">
+            <div class="rc-meta">
+              <span class="rc-filename">${r.name}</span>
+              ${badge}
             </div>
-            <div class="result-stat">
-              <div class="stat-val">${r.coverageArea.toFixed(4)}</div>
-              <div class="stat-label">Sq Miles Coverage</div>
+            <div class="rc-hero-stat">
+              <span class="rc-big">${r.roadPct.toFixed(1)}%</span>
+              <span class="rc-unit">of Lakewood roads</span>
             </div>
-            <div class="result-stat">
-              <div class="stat-val">${r.pct.toFixed(1)}%</div>
-              <div class="stat-label">% of Lakewood</div>
+          </div>
+          <div class="rc-bottom">
+            <div class="rc-pair-stat">
+              <span class="rc-pair-val">${r.milesInLakewood.toFixed(2)}</span>
+              <span class="rc-pair-lbl">miles in Lakewood</span>
+            </div>
+            <div class="rc-pair-stat">
+              <span class="rc-pair-val">${r.roadMilesCovered.toFixed(2)}</span>
+              <span class="rc-pair-lbl">road miles covered</span>
             </div>
           </div>
         </div>
@@ -641,23 +759,8 @@ import Layout from '../layouts/Layout.astro';
   }
 
   /* Results */
-  .results-section {
-    background: var(--white);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius);
-    padding: 1.75rem;
-  }
-
+  .results-section { display: flex; flex-direction: column; gap: 0; }
   .results-section.hidden { display: none; }
-
-  .results-title {
-    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
-    font-size: 1.5rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    color: var(--text);
-    margin: 0 0 1.25rem;
-  }
 
   .analyzing {
     text-align: center;
@@ -666,63 +769,106 @@ import Layout from '../layouts/Layout.astro';
     font-size: 1rem;
   }
 
-  .winner-card {
-    background: var(--yellow-bg);
-    border: 1px solid var(--yellow-border);
-    border-radius: 0.65rem;
-    padding: 1rem 1.25rem;
-    font-size: 1rem;
-    color: var(--text);
-    margin-bottom: 1rem;
-    text-align: center;
+  .result-card {
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid #2a2a2a;
+    margin-bottom: 1.25rem;
   }
+  .result-card:last-child { margin-bottom: 0; }
 
-  .result-row {
+  /* Dark top — filename + headline % stat */
+  .rc-top {
+    background: #1b1b1b;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    border: 1px solid var(--card-border);
-    border-left-width: 3px;
-    border-radius: 0.5rem;
-    padding: 0.9rem 1rem;
-    margin-bottom: 0.65rem;
-    background: var(--gray-light);
-    flex-wrap: wrap;
-  }
-
-  .result-name {
-    font-weight: 700;
-    font-size: 1rem;
-    flex: 1;
-    min-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .result-stats {
-    display: flex;
+    padding: 2rem 2rem 1.75rem;
     gap: 1.5rem;
     flex-wrap: wrap;
   }
 
-  .result-stat { text-align: center; }
+  .rc-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 
-  .stat-val {
+  .rc-filename {
+    font-size: 0.9rem;
+    color: #777;
+    font-weight: 500;
+    word-break: break-all;
+  }
+
+  .rc-winner-badge {
+    display: inline-block;
+    background: var(--yellow);
+    color: var(--black);
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 0.25rem 0.6rem;
+    border-radius: 0.25rem;
+    width: fit-content;
+  }
+
+  .rc-hero-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+  }
+
+  .rc-big {
     font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
-    font-size: 1.4rem;
+    font-size: clamp(4rem, 10vw, 7rem);
+    font-weight: 800;
+    color: var(--yellow);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+  }
+
+  .rc-unit {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #666;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  /* White bottom — two supporting stats */
+  .rc-bottom {
+    background: var(--white);
+    border-top: 1px solid #2a2a2a;
+    display: flex;
+  }
+
+  .rc-pair-stat {
+    flex: 1;
+    padding: 1.4rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .rc-pair-stat + .rc-pair-stat { border-left: 1px solid var(--card-border); }
+
+  .rc-pair-val {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 2.5rem;
     font-weight: 800;
     color: var(--text);
     line-height: 1;
   }
 
-  .stat-label {
-    font-size: 1rem;
+  .rc-pair-lbl {
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.1em;
     color: var(--text-soft);
-    margin-top: 0.2rem;
+    font-weight: 600;
   }
 
   .result-error {
@@ -750,6 +896,18 @@ import Layout from '../layouts/Layout.astro';
     color: var(--text);
     margin: 0 0 1rem;
   }
+
+  /* Road status badge */
+  .road-status {
+    display: inline-block;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 0.3rem;
+    margin-bottom: 0.75rem;
+  }
+  .road-status--loading { background: #1b1b1b; color: #888; border: 1px solid #333; }
+  .road-status--ready   { background: rgba(255,216,0,0.08); color: var(--yellow); border: 1px solid rgba(255,216,0,0.25); }
+  .road-status--error   { background: #1b1b1b; color: #c66; border: 1px solid #c66; }
 
   @media (max-width: 600px) {
     .tool-section { padding: 2rem 1.25rem 4rem; }

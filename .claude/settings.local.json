@@ -8,7 +8,8 @@
       "Bash(curl -s http://localhost:4323/results/)",
       "Bash(curl -s http://localhost:4323/distance-calculator/)",
       "Bash(node *)",
-      "Bash(npx astro *)"
+      "Bash(npx astro *)",
+      "WebFetch(domain:wandrer.earth)"
     ]
   }
 }

@@ -16,7 +16,7 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <section class="tbd-section">
+  <section id="tbd-section" class="tbd-section">
     <div class="container">
       <div class="tbd-card">
         <div class="tbd-badge">
@@ -67,12 +67,104 @@ import Layout from '../layouts/Layout.astro';
       </div>
     </div>
   </section>
+  <!-- Results (shown after feature flag unlocks) -->
+  <section id="results-section" class="results-live-section">
+    <div class="container">
+
+      <p class="section-tag">2026 Final Results</p>
+
+      <div class="lb-grid">
+
+        <div class="lb-card">
+          <div class="lb-header">
+            <h2 class="lb-cat">Most Distance</h2>
+            <p class="lb-sub">Total miles within Lakewood</p>
+          </div>
+          <div id="lb-distance" class="lb-list"></div>
+        </div>
+
+        <div class="lb-card">
+          <div class="lb-header">
+            <h2 class="lb-cat">Most Coverage</h2>
+            <p class="lb-sub">% of Lakewood roads ridden</p>
+          </div>
+          <div id="lb-coverage" class="lb-list"></div>
+        </div>
+
+        <div class="lb-card">
+          <div class="lb-header">
+            <h2 class="lb-cat">Most Elevation</h2>
+            <p class="lb-sub">Total elevation gain</p>
+          </div>
+          <div id="lb-elevation" class="lb-list"></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
 </Layout>
 
 <script>
-  (() => {
+  // ── Results data — fill these in after the event ──────────────────────────
+  // Each array is ordered 1st → last place.
+  const RESULTS = {
+    distance: [
+      { name: 'Rider Name', value: '—', unit: 'mi' },
+      { name: 'Rider Name', value: '—', unit: 'mi' },
+      { name: 'Rider Name', value: '—', unit: 'mi' },
+    ],
+    coverage: [
+      { name: 'Rider Name', value: '—', unit: '%' },
+      { name: 'Rider Name', value: '—', unit: '%' },
+      { name: 'Rider Name', value: '—', unit: '%' },
+    ],
+    elevation: [
+      { name: 'Rider Name', value: '—', unit: 'ft' },
+      { name: 'Rider Name', value: '—', unit: 'ft' },
+      { name: 'Rider Name', value: '—', unit: 'ft' },
+    ],
+  };
+
+  // ── Feature flag ──────────────────────────────────────────────────────────
+  // Results go live at 8 pm ET on July 11, 2026.
+  // To preview locally: add ?preview to the URL (e.g. /results?preview)
+  const LAUNCH_MS = new Date('2026-07-11T20:00:00-04:00').getTime();
+  const preview   = new URLSearchParams(location.search).has('preview');
+  const live      = preview || Date.now() >= LAUNCH_MS;
+
+  const tbdEl     = document.getElementById('tbd-section');
+  const resultsEl = document.getElementById('results-section');
+  if (tbdEl)     tbdEl.style.display     = live ? 'none' : '';
+  if (resultsEl) resultsEl.style.display = live ? ''     : 'none';
+
+  // ── Render leaderboards ───────────────────────────────────────────────────
+  const RANK_CLASS = ['lb-rank--gold', 'lb-rank--silver', 'lb-rank--bronze'];
+
+  function renderLeaderboard(id, entries) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = entries.map((e, i) => {
+      const rowMod = i === 0 ? ' lb-row--winner' : i < 3 ? ' lb-row--podium' : '';
+      return `
+        <div class="lb-row${rowMod}">
+          <span class="lb-rank ${RANK_CLASS[i] || ''}">${i + 1}</span>
+          <span class="lb-name">${e.name}</span>
+          <span class="lb-val">${e.value}<span class="lb-unit"> ${e.unit}</span></span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  if (live) {
+    renderLeaderboard('lb-distance', RESULTS.distance);
+    renderLeaderboard('lb-coverage', RESULTS.coverage);
+    renderLeaderboard('lb-elevation', RESULTS.elevation);
+  }
+
+  // ── Countdown (only runs when TBD section is showing) ────────────────────
+  if (!live) {
     const TARGET = new Date('2026-07-11T08:00:00-04:00').getTime();
-    const pad = (n: number) => String(n).padStart(2, '0');
+    const pad = (n) => String(n).padStart(2, '0');
     const tick = () => {
       const diff = Math.max(0, TARGET - Date.now());
       const s = Math.floor(diff / 1000);
@@ -87,7 +179,7 @@ import Layout from '../layouts/Layout.astro';
     };
     tick();
     setInterval(tick, 1000);
-  })();
+  }
 </script>
 
 <style>
@@ -290,5 +382,130 @@ import Layout from '../layouts/Layout.astro';
     .tbd-section { padding: 3rem 1.25rem; }
     .tbd-card { padding: 1.75rem 1.25rem; }
     .cd-val { font-size: 2.1rem; min-width: 52px; }
+  }
+
+  /* ── Live results section ───────────────────────────────────────────────── */
+  .results-live-section {
+    background: var(--gray-light);
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  .section-tag {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-soft);
+    font-weight: 700;
+    margin: 0 0 1.5rem;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--yellow);
+  }
+
+  .lb-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  .lb-card {
+    background: var(--white);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .lb-header {
+    padding: 1.25rem 1.5rem 1rem;
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .lb-cat {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text);
+    margin: 0 0 0.2rem;
+    letter-spacing: 0.04em;
+  }
+
+  .lb-sub {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+
+  .lb-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Winner row — purple card, yellow value */
+  .lb-row {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .lb-row:last-child { border-bottom: none; }
+
+  .lb-row--winner {
+    background: var(--purple);
+    padding: 1.1rem 1.25rem;
+  }
+  .lb-row--winner .lb-name { color: #fff; font-size: 1.05rem; }
+  .lb-row--winner .lb-val  { color: var(--yellow); font-size: 1.5rem; }
+  .lb-row--winner .lb-unit { color: rgba(255,255,255,0.5); }
+
+  /* 2nd / 3rd place — subtle yellow tint */
+  .lb-row--podium { background: var(--yellow-bg); }
+
+  .lb-rank {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 800;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--card-border);
+    color: var(--text-muted);
+  }
+  .lb-rank--gold   { background: #F2A900; color: #1b1b1b; }
+  .lb-rank--silver { background: #b8b8b8; color: #1b1b1b; }
+  .lb-rank--bronze { background: #b87333; color: #fff; }
+
+  .lb-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .lb-val {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .lb-unit {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 860px) {
+    .lb-grid { grid-template-columns: 1fr; }
+    .results-live-section { padding: 2rem 1.25rem 4rem; }
   }
 </style>

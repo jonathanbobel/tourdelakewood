@@ -51,7 +51,7 @@ import Layout from '../layouts/Layout.astro';
             </div>
             <div class="rc-stat-inner" id="coverage-stat" style="display:none">
               <span class="rc-big" id="coverage-pct">—</span>
-              <span class="rc-unit">of Lakewood covered</span>
+              <span class="rc-unit">of roads covered</span>
             </div>
           </div>
         </div>
@@ -167,6 +167,39 @@ import Layout from '../layouts/Layout.astro';
     properties: { name: 'Lakewood, OH' }
   };
 
+  // Road network (shares localStorage cache with Route Analyzer page)
+  const OVERPASS     = 'https://overpass-api.de/api/interpreter';
+  const ROAD_CACHE_K = 'tdl_roads_v4';
+  const CACHE_TTL    = 7 * 24 * 60 * 60 * 1000;
+  const HW_FILTER    = 'primary|secondary|tertiary|unclassified|residential|living_street|cycleway';
+
+  async function fetchRoads() {
+    try {
+      const c = JSON.parse(localStorage.getItem(ROAD_CACHE_K));
+      if (c && Date.now() - c.ts < CACHE_TTL) return c.d;
+    } catch (_) {}
+
+    const q = `[out:json][timeout:60];(way["highway"~"^(${HW_FILTER})$"](41.463,-81.844,41.501,-81.769););out geom;`;
+    const r  = await fetch(OVERPASS, { method: 'POST', body: q });
+    if (!r.ok) throw new Error(`Overpass ${r.status}`);
+    const js = await r.json();
+
+    let totalMiles = 0;
+    const features = [];
+    for (const el of js.elements) {
+      if (el.type !== 'way' || !el.geometry || el.geometry.length < 2) continue;
+      const coords = el.geometry.map(n => [n.lon, n.lat]);
+      const feat = { type: 'Feature', properties: { id: el.id }, geometry: { type: 'LineString', coordinates: coords } };
+      if (!turf.booleanIntersects(feat, LAKEWOOD)) continue;
+      totalMiles += turf.length(feat, { units: 'miles' });
+      features.push(feat);
+    }
+
+    const net = { type: 'FeatureCollection', features, totalMiles };
+    try { localStorage.setItem(ROAD_CACHE_K, JSON.stringify({ ts: Date.now(), d: net })); } catch (_) {}
+    return net;
+  }
+
   function parseGPX(xml) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(xml, 'text/xml');
@@ -192,24 +225,25 @@ import Layout from '../layouts/Layout.astro';
     return v.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
+  const COVERAGE_CACHE_K = 'tdl_record_coverage_v3';
+
   async function initCoverageMap() {
     const map = L.map('coverage-map', { zoomControl: true, scrollWheelZoom: false })
       .setView([41.4856, -81.8017], 13);
-
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 18
+      attribution: '&copy; OpenStreetMap contributors', maxZoom: 18
     }).addTo(map);
-
     L.geoJSON(LAKEWOOD, {
-      style: { color: '#F2A900', weight: 2.5, fillColor: '#F2A900', fillOpacity: 0.07 }
+      style: { color: '#F2A900', weight: 2.5, fillColor: '#F2A900', fillOpacity: 0.05 }
     }).addTo(map);
 
-    let coords;
+    // Always fetch the GPX (needed for the map) and road network in parallel
+    let net, coords;
     try {
-      const res = await fetch('/Tour_de_Lakewood.gpx');
-      const text = await res.text();
-      coords = parseGPX(text);
+      [net, coords] = await Promise.all([
+        fetchRoads(),
+        fetch('/Tour_de_Lakewood.gpx').then(r => r.text()).then(parseGPX)
+      ]);
     } catch (e) {
       document.getElementById('coverage-loading').style.display = 'none';
       document.getElementById('coverage-stat').style.display = 'flex';
@@ -217,32 +251,49 @@ import Layout from '../layouts/Layout.astro';
       return;
     }
 
-    // Draw the route (full resolution for map display)
+    // Draw the record GPX track — OSM tiles show the full street network
     L.polyline(coords.map(c => [c[1], c[0]]), {
-      color: '#5F259F',
-      weight: 2.5,
-      opacity: 0.9
+      color: '#5F259F', weight: 3, opacity: 0.85
     }).addTo(map);
 
-    // Compute coverage on simplified line to keep it fast
-    let pct = 0;
+    // Check if the expensive coverage analysis is cached
+    let pct;
     try {
-      const line = turf.lineString(coords);
-      const simplified = turf.simplify(line, { tolerance: 0.0002, highQuality: false });
-      const lakewoodAreaSqMi = turf.area(LAKEWOOD) / 2589988.11;
-      const buffered = turf.buffer(simplified, 0.01, { units: 'miles' });
-      const intersect = turf.intersect(buffered, LAKEWOOD);
-      if (intersect) {
-        const coverageArea = turf.area(intersect) / 2589988.11;
-        pct = Math.min(100, (coverageArea / lakewoodAreaSqMi) * 100);
-      }
+      const c = JSON.parse(localStorage.getItem(COVERAGE_CACHE_K));
+      if (c && Date.now() - c.ts < CACHE_TTL) { pct = c.pct; }
     } catch (_) {}
 
+    if (pct == null) {
+      // Run the coverage analysis (slow — cached after first run)
+      const buf     = turf.buffer(turf.lineString(coords), 0.025, { units: 'kilometers' });
+      const bufEdge = turf.polygonToLine(buf);
+      let coveredMiles = 0;
+      for (const road of net.features) {
+        if (!turf.booleanIntersects(road, buf)) continue;
+        let inside = 0;
+        try {
+          const split = turf.lineSplit(road, bufEdge);
+          const segs  = split.features.length > 0 ? split.features : [road];
+          for (const seg of segs) {
+            const len = turf.length(seg, { units: 'miles' });
+            if (!len) continue;
+            const mid = turf.along(seg, len / 2, { units: 'miles' });
+            if (turf.booleanPointInPolygon(mid, buf)) inside += len;
+          }
+        } catch (_) {
+          inside = turf.length(road, { units: 'miles' });
+        }
+        coveredMiles += inside;
+      }
+      pct = net.totalMiles > 0 ? Math.min(100, (coveredMiles / net.totalMiles) * 100) : 0;
+      try {
+        localStorage.setItem(COVERAGE_CACHE_K, JSON.stringify({ ts: Date.now(), pct }));
+      } catch (_) {}
+    }
+
     document.getElementById('coverage-loading').style.display = 'none';
-    const statEl = document.getElementById('coverage-stat');
-    statEl.style.display = 'flex';
-    const pctEl = document.getElementById('coverage-pct');
-    animateCount(pctEl, 0, pct, 1800, v => v.toFixed(1) + '%');
+    document.getElementById('coverage-stat').style.display = 'flex';
+    animateCount(document.getElementById('coverage-pct'), 0, pct, 1800, v => v.toFixed(1) + '%');
   }
 
   function setupCountUps() {
