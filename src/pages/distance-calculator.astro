@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout
   title="Route Analyzer"
-  description="Upload GPX files from Strava or Garmin and analyze how many miles of your ride fell within Lakewood, Ohio city limits."
+  description="Upload GPX files from Strava or Garmin and analyze how many miles of your ride fell within Lakewood, Ohio city limits — and what percentage of the road network you covered."
 >
   <!-- Leaflet + Turf.js injected into <head> via named slot -->
   <link slot="head" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -12,7 +12,7 @@ import Layout from '../layouts/Layout.astro';
   <script is:inline slot="head" src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
 
   <style is:global>
-    #map { height: 480px; border-radius: 0.65rem; overflow: hidden; }
+    #map { height: 480px; border-radius: 0 0 0.65rem 0.65rem; overflow: hidden; }
 
     .spinner {
       border: 3px solid #2a2a2a;
@@ -30,8 +30,8 @@ import Layout from '../layouts/Layout.astro';
     }
 
     .drop-zone.dragover {
-      border-color: var(--yellow) !important;
-      background: rgba(255, 216, 0, 0.06) !important;
+      border-color: var(--yellow-border) !important;
+      background: var(--yellow-bg) !important;
     }
   </style>
 
@@ -44,8 +44,8 @@ import Layout from '../layouts/Layout.astro';
         <em>Analyzer</em>
       </h1>
       <p class="page-sub">
-        Upload your GPX files and see exactly how many miles of your ride
-        fell within Lakewood city limits &mdash; and what percentage of the city you covered.
+        Upload your GPX files to see how many miles of your ride fell within Lakewood city limits
+        &mdash; and what percentage of the road network you covered.
       </p>
     </div>
   </section>
@@ -54,31 +54,58 @@ import Layout from '../layouts/Layout.astro';
   <section class="tool-section">
     <div class="tool-container">
 
-      <!-- Drop zone -->
-      <div class="drop-zone" id="fileInputContainer">
-        <p class="drop-label">Drop GPX files here or click to upload</p>
-        <p class="drop-hint">Select multiple files to compare rides</p>
-        <input type="file" id="fileInput" accept=".gpx" multiple class="sr-only" />
+      <p class="section-tag">Route Analysis</p>
+
+      <div class="tool-grid">
+
+        <!-- Left: Upload controls -->
+        <div class="upload-col">
+          <div class="upload-card">
+
+            <!-- Drop zone -->
+            <div class="drop-zone" id="fileInputContainer">
+              <div class="drop-icon-wrap">
+                <svg class="drop-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              </div>
+              <p class="drop-label">Drop GPX files here</p>
+              <p class="drop-hint">or click to upload &middot; multiple files supported</p>
+              <input type="file" id="fileInput" accept=".gpx" multiple class="sr-only" />
+            </div>
+
+            <!-- File list -->
+            <div id="fileList" class="file-list"></div>
+
+            <!-- Analyze button -->
+            <div class="btn-wrap">
+              <button id="analyzeBtn" disabled class="analyze-btn">
+                Analyze Coverage
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Right: Map -->
+        <div class="map-col">
+          <div class="map-card">
+            <div class="map-card-header">
+              <span class="map-card-title">Lakewood, OH</span>
+              <div id="roadStatus" class="road-status road-status--loading">Loading road network…</div>
+            </div>
+            <div id="map"></div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- File list -->
-      <div id="fileList" class="file-list"></div>
-
-      <!-- Analyze button -->
-      <button id="analyzeBtn" disabled class="analyze-btn">
-        Analyze Coverage
-      </button>
-
-      <!-- Results -->
+      <!-- Results — full-width, shown after analysis -->
       <div id="resultsSection" class="results-section hidden">
+        <p class="section-tag results-tag">Analysis Results</p>
         <div id="results"></div>
-      </div>
-
-      <!-- Map -->
-      <div class="map-wrap">
-        <h2 class="map-title">Map</h2>
-        <div id="roadStatus" class="road-status road-status--loading">Loading road network…</div>
-        <div id="map"></div>
       </div>
 
     </div>
@@ -294,7 +321,6 @@ import Layout from '../layouts/Layout.astro';
 
   let roadNet     = null;
   let roadPromise = null;
-  let roadLayer   = null;
 
   async function fetchRoads() {
     if (roadNet) return roadNet;
@@ -348,14 +374,6 @@ import Layout from '../layouts/Layout.astro';
     }
   }
 
-  function drawRoadBase(_net) {
-    // nothing — OSM tiles already show the street network
-  }
-
-  function highlightRoads(_net, _coveredIds) {
-    // nothing — road coverage is shown in the stats panel, not on the map
-  }
-
   async function analyzeRoads(coords) {
     const net     = await loadRoads();
     const buf     = turf.buffer(turf.lineString(coords), SNAP_KM, { units: 'kilometers' });
@@ -364,7 +382,6 @@ import Layout from '../layouts/Layout.astro';
     const coveredIds = new Set();
     for (const road of net.features) {
       if (!turf.booleanIntersects(road, buf)) continue;
-      // Split the road at the buffer boundary and only count the portion inside
       let inside = 0;
       try {
         const split = turf.lineSplit(road, bufEdge);
@@ -391,6 +408,7 @@ import Layout from '../layouts/Layout.astro';
   let map;
   let files = [];
   let analysisResults = [];
+  let trackLayers = [];
 
   async function initMap() {
     map = L.map('map').setView([41.4856, -81.8017], 13);
@@ -404,7 +422,7 @@ import Layout from '../layouts/Layout.astro';
 
     setRoadStatus('loading');
     loadRoads()
-      .then(net => { drawRoadBase(net); setRoadStatus('ready', net.features.length); })
+      .then(net => { setRoadStatus('ready', net.features.length); })
       .catch(() => setRoadStatus('error'));
   }
 
@@ -438,18 +456,39 @@ import Layout from '../layouts/Layout.astro';
     files.forEach((file, i) => {
       const item = document.createElement('div');
       item.className = 'file-item';
-      item.innerHTML = `
-        <span class="file-name">${file.name}</span>
-        <button class="file-remove" onclick="removeFile(${i})">Remove</button>
-      `;
+
+      const left = document.createElement('div');
+      left.className = 'file-left';
+
+      const badge = document.createElement('span');
+      badge.className = 'file-badge';
+      badge.textContent = 'GPX';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'file-name';
+      nameSpan.textContent = file.name.replace(/\.gpx$/i, '').replace(/[_-]/g, ' ');
+
+      left.appendChild(badge);
+      left.appendChild(nameSpan);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'file-remove';
+      removeBtn.textContent = '×';
+      removeBtn.addEventListener('click', () => {
+        files.splice(i, 1);
+        trackLayers.forEach(l => map.removeLayer(l));
+        trackLayers = [];
+        analysisResults = [];
+        document.getElementById('resultsSection').classList.add('hidden');
+        document.getElementById('results').innerHTML = '';
+        renderFileList();
+        document.getElementById('analyzeBtn').disabled = files.length === 0;
+      });
+
+      item.appendChild(left);
+      item.appendChild(removeBtn);
       list.appendChild(item);
     });
-  }
-
-  function removeFile(index) {
-    files.splice(index, 1);
-    renderFileList();
-    document.getElementById('analyzeBtn').disabled = files.length === 0;
   }
 
   function parseGPX(gpxText) {
@@ -474,7 +513,6 @@ import Layout from '../layouts/Layout.astro';
     resultsEl.innerHTML = '<div class="analyzing"><div class="spinner"></div><p>Loading road network &amp; analyzing GPX files&hellip;</p></div>';
 
     analysisResults = [];
-    const colors = ['#F2A900', '#E25A28', '#1C8282', '#aaaaaa', '#ff6b6b', '#4ecdc4'];
 
     try {
       for (let i = 0; i < files.length; i++) {
@@ -482,7 +520,6 @@ import Layout from '../layouts/Layout.astro';
         const coords = parseGPX(await file.text());
         if (!coords.length) throw new Error(`No coordinates found in ${file.name}`);
 
-        // Miles of GPX track inside Lakewood boundary
         let milesInLakewood = 0;
         let insideSegs = [];
 
@@ -520,9 +557,7 @@ import Layout from '../layouts/Layout.astro';
           }
         }
 
-        // Road coverage via 25 m snap buffer
         const roads = await analyzeRoads(coords);
-        const color = colors[i % colors.length];
 
         analysisResults.push({
           name: file.name,
@@ -530,16 +565,14 @@ import Layout from '../layouts/Layout.astro';
           roadMilesCovered: roads.coveredMiles,
           roadMilesTotal:   roads.totalMiles,
           roadPct:          roads.pct,
-          color,
           insideSegs,
         });
 
-        highlightRoads(roads.net, roads.coveredIds);
-
         // Draw the full GPS track as one polyline
-        L.polyline(coords.map(c => [c[1], c[0]]), {
+        const layer = L.polyline(coords.map(c => [c[1], c[0]]), {
           color: '#5F259F', weight: 3.5, opacity: 0.95
         }).addTo(map);
+        trackLayers.push(layer);
       }
 
       renderResults();
@@ -554,28 +587,25 @@ import Layout from '../layouts/Layout.astro';
     let html = '';
 
     sorted.forEach((r, i) => {
+      const displayName = r.name.replace(/\.gpx$/i, '').replace(/[_-]/g, ' ');
       const badge = isMulti && i === 0
         ? '<span class="rc-winner-badge">Winner</span>' : '';
       html += `
         <div class="result-card">
           <div class="rc-top">
             <div class="rc-meta">
-              <span class="rc-filename">${r.name}</span>
               ${badge}
+              <span class="rc-filename">${displayName}</span>
             </div>
             <div class="rc-hero-stat">
               <span class="rc-big">${r.roadPct.toFixed(1)}%</span>
-              <span class="rc-unit">of Lakewood roads</span>
+              <span class="rc-unit">of Lakewood roads covered</span>
             </div>
           </div>
           <div class="rc-bottom">
             <div class="rc-pair-stat">
-              <span class="rc-pair-val">${r.milesInLakewood.toFixed(2)}</span>
-              <span class="rc-pair-lbl">miles in Lakewood</span>
-            </div>
-            <div class="rc-pair-stat">
-              <span class="rc-pair-val">${r.roadMilesCovered.toFixed(2)}</span>
-              <span class="rc-pair-lbl">road miles covered</span>
+              <span class="rc-pair-val">${r.milesInLakewood.toFixed(2)}<span class="rc-pair-unit">mi</span></span>
+              <span class="rc-pair-lbl">Miles in Lakewood</span>
             </div>
           </div>
         </div>
@@ -589,7 +619,7 @@ import Layout from '../layouts/Layout.astro';
   document.addEventListener('DOMContentLoaded', initMap);
 </script>
 
-<style>
+<style is:global>
   .sr-only {
     position: absolute;
     width: 1px; height: 1px;
@@ -646,35 +676,45 @@ import Layout from '../layouts/Layout.astro';
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1.5rem;
   }
 
-  /* Status bar */
-  .status-bar {
-    background: #1b1b1b;
-    border: 1px solid #333;
-    border-radius: 0.5rem;
-    padding: 0.75rem 1rem;
+  .section-tag {
     font-size: 1rem;
-    color: #aaa;
-    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--text-soft);
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--yellow);
   }
 
-  .status-bar--ok {
-    color: var(--yellow);
-    border-color: rgba(255, 216, 0, 0.4);
-    background: #1b1b1b;
+  /* Two-column grid */
+  .tool-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1.5rem;
+    align-items: start;
   }
 
-  /* Drop zone */
-  .drop-zone {
+  /* Upload card */
+  .upload-card {
     background: var(--white);
-    border: 2px dashed var(--card-border);
+    border: 1px solid var(--card-border);
     border-radius: var(--radius);
-    padding: 3rem 2rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .drop-zone {
+    border-bottom: 2px dashed var(--card-border);
+    padding: 2.5rem 2rem;
     text-align: center;
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s;
+    background: var(--white);
   }
 
   .drop-zone:hover {
@@ -682,39 +722,78 @@ import Layout from '../layouts/Layout.astro';
     background: var(--yellow-bg);
   }
 
-  .drop-icon { font-size: 2rem; margin-bottom: 0.65rem; }
+  .drop-icon-wrap {
+    margin-bottom: 0.85rem;
+  }
+
+  .drop-icon-svg {
+    width: 40px;
+    height: 40px;
+    stroke: var(--text-soft);
+    display: block;
+    margin: 0 auto;
+  }
 
   .drop-label {
-    font-weight: 600;
-    font-size: 1rem;
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 1.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
     color: var(--text);
-    margin: 0 0 0.3rem;
+    margin: 0 0 0.35rem;
   }
 
   .drop-hint {
-    font-size: 1rem;
+    font-size: 0.875rem;
     color: var(--text-soft);
     margin: 0;
   }
 
   /* File list */
-  .file-list { display: flex; flex-direction: column; gap: 0.6rem; }
+  .file-list { 
+    display: flex; 
+    flex-direction: column; 
+  }
 
   .file-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--white);
-    border: 1px solid var(--card-border);
-    border-radius: 0.5rem;
-    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--card-border);
+    padding: 1.1rem 1.5rem;
     gap: 1rem;
   }
 
+  .file-left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .file-badge {
+    display: inline-block;
+    background: var(--yellow);
+    color: var(--black);
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.18rem 0.4rem;
+    border-radius: 0.2rem;
+    flex-shrink: 0;
+  }
+
   .file-name {
-    font-size: 1rem;
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: var(--text);
-    font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -724,8 +803,9 @@ import Layout from '../layouts/Layout.astro';
     background: none;
     border: 1px solid var(--card-border);
     border-radius: 0.3rem;
-    padding: 0.3rem 0.65rem;
+    padding: 0.2rem 0.55rem;
     font-size: 1rem;
+    line-height: 1;
     color: var(--text-muted);
     cursor: pointer;
     flex-shrink: 0;
@@ -735,14 +815,17 @@ import Layout from '../layouts/Layout.astro';
   .file-remove:hover { border-color: #c00; color: #c00; }
 
   /* Analyze button */
+  .btn-wrap { padding: 1.25rem; }
+
   .analyze-btn {
     background: var(--yellow);
     color: var(--black);
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
     font-weight: 700;
-    font-size: 1rem;
-    letter-spacing: 0.05em;
+    font-size: 1.15rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    padding: 1rem 1.5rem;
+    padding: 0.85rem 1.5rem;
     border: none;
     border-radius: 0.5rem;
     cursor: pointer;
@@ -750,7 +833,7 @@ import Layout from '../layouts/Layout.astro';
     width: 100%;
   }
 
-  .analyze-btn:hover:not(:disabled) { background: #F5B400; }
+  .analyze-btn:hover:not(:disabled) { background: var(--yellow-border); }
 
   .analyze-btn:disabled {
     background: var(--card-border);
@@ -758,26 +841,65 @@ import Layout from '../layouts/Layout.astro';
     cursor: not-allowed;
   }
 
+  /* Map card */
+  .map-card {
+    background: #1b1b1b;
+    border: 1px solid #2a2a2a;
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .map-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .map-card-title {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--white);
+  }
+
+  /* Road status badge */
+  .road-status {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.3rem;
+  }
+  .road-status--loading { background: #252525; color: #888; border: 1px solid #333; }
+  .road-status--ready   { background: rgba(255,216,0,0.08); color: var(--yellow); border: 1px solid rgba(255,216,0,0.25); }
+  .road-status--error   { background: #252525; color: #c66; border: 1px solid #c66; }
+
   /* Results */
-  .results-section { display: flex; flex-direction: column; gap: 0; }
+  .results-section { display: flex; flex-direction: column; gap: 1rem; }
   .results-section.hidden { display: none; }
+  .results-tag { margin-bottom: 0; }
 
   .analyzing {
     text-align: center;
-    padding: 2rem;
+    padding: 2.5rem 2rem;
     color: var(--text-muted);
+    background: var(--white);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
     font-size: 1rem;
   }
 
+  /* Result cards */
   .result-card {
     border-radius: var(--radius);
     overflow: hidden;
     border: 1px solid #2a2a2a;
-    margin-bottom: 1.25rem;
   }
-  .result-card:last-child { margin-bottom: 0; }
 
-  /* Dark top — filename + headline % stat */
   .rc-top {
     background: #1b1b1b;
     display: flex;
@@ -795,10 +917,14 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .rc-filename {
-    font-size: 0.9rem;
-    color: #777;
-    font-weight: 500;
-    word-break: break-all;
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--white);
+    line-height: 1.1;
+    word-break: break-word;
   }
 
   .rc-winner-badge {
@@ -818,7 +944,7 @@ import Layout from '../layouts/Layout.astro';
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 0.15rem;
+    gap: 0.2rem;
   }
 
   .rc-big {
@@ -831,15 +957,15 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .rc-unit {
-    font-size: 0.8rem;
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 1.1rem;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #666;
+    letter-spacing: 0.1em;
+    color: #888;
     font-weight: 600;
     text-align: right;
   }
 
-  /* White bottom — two supporting stats */
   .rc-bottom {
     background: var(--white);
     border-top: 1px solid #2a2a2a;
@@ -851,24 +977,35 @@ import Layout from '../layouts/Layout.astro';
     padding: 1.4rem 2rem;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.2rem;
   }
   .rc-pair-stat + .rc-pair-stat { border-left: 1px solid var(--card-border); }
 
   .rc-pair-val {
     font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
-    font-size: 2.5rem;
+    font-size: 3.75rem;
     font-weight: 800;
     color: var(--text);
     line-height: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 0.2rem;
+  }
+
+  .rc-pair-unit {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-soft);
+    letter-spacing: 0.04em;
   }
 
   .rc-pair-lbl {
-    font-size: 0.75rem;
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 1.05rem;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     color: var(--text-soft);
-    font-weight: 600;
+    font-weight: 700;
   }
 
   .result-error {
@@ -880,39 +1017,13 @@ import Layout from '../layouts/Layout.astro';
     font-size: 1rem;
   }
 
-  /* Map */
-  .map-wrap {
-    background: var(--white);
-    border: 1px solid var(--card-border);
-    border-radius: var(--radius);
-    padding: 1.75rem;
+  @media (max-width: 768px) {
+    .tool-grid { grid-template-columns: 1fr; }
   }
-
-  .map-title {
-    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
-    font-size: 1.5rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    color: var(--text);
-    margin: 0 0 1rem;
-  }
-
-  /* Road status badge */
-  .road-status {
-    display: inline-block;
-    font-size: 0.8rem;
-    padding: 0.25rem 0.65rem;
-    border-radius: 0.3rem;
-    margin-bottom: 0.75rem;
-  }
-  .road-status--loading { background: #1b1b1b; color: #888; border: 1px solid #333; }
-  .road-status--ready   { background: rgba(255,216,0,0.08); color: var(--yellow); border: 1px solid rgba(255,216,0,0.25); }
-  .road-status--error   { background: #1b1b1b; color: #c66; border: 1px solid #c66; }
 
   @media (max-width: 600px) {
     .tool-section { padding: 2rem 1.25rem 4rem; }
-    .result-row { flex-direction: column; align-items: flex-start; }
-    .result-stats { gap: 1rem; }
     .drop-zone { padding: 2rem 1.25rem; }
+    .rc-pair-stat { padding: 1.1rem 1.25rem; }
   }
 </style>
