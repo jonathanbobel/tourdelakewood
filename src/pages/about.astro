@@ -176,6 +176,72 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
+  <!-- RACE DAY SCHEDULE -->
+  <section class="section section--black">
+    <div class="container">
+      <p class="section-tag-light">July 11, 2026</p>
+      <h2 class="section-h2-light">Race Day Schedule.</h2>
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="tl-time">
+            <span class="tl-hr">8:00</span>
+            <span class="tl-ampm">AM</span>
+          </div>
+          <div class="tl-connector">
+            <div class="tl-dot"></div>
+            <div class="tl-line-seg"></div>
+          </div>
+          <div class="tl-body">
+            <h3 class="tl-title">Grand D&eacute;part &mdash; Madison Park</h3>
+            <p class="tl-desc">
+              Kick off the day at Madison Park in Lakewood. We&rsquo;ll do a group
+              ride under 10 miles to start &mdash; route TBD, will be posted on
+              RidewithGPS before the event. After that, the city is yours for the
+              next 12 hours.
+            </p>
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-time">
+            <span class="tl-hr">2:00</span>
+            <span class="tl-ampm">PM</span>
+          </div>
+          <div class="tl-connector">
+            <div class="tl-dot"></div>
+            <div class="tl-line-seg"></div>
+          </div>
+          <div class="tl-body">
+            <h3 class="tl-title">Midday Meetup &mdash; Lakewood Truck Park</h3>
+            <p class="tl-desc">
+              Optional mid-ride pit stop for snacks and libations, if you so choose.
+              Roll through, refuel, and get back on the road.
+            </p>
+          </div>
+        </div>
+
+        <div class="tl-item tl-item--last">
+          <div class="tl-time">
+            <span class="tl-hr">8:00</span>
+            <span class="tl-ampm">PM</span>
+          </div>
+          <div class="tl-connector">
+            <div class="tl-dot tl-dot--end"></div>
+          </div>
+          <div class="tl-body">
+            <h3 class="tl-title">Ride Hard Stop &mdash; Afterparty at Sauced Taproom &amp; Kitchen</h3>
+            <p class="tl-desc">
+              Wheels down at 8 PM. Head over to Sauced Taproom and Kitchen on
+              Detroit Ave for the official afterparty and race results announcement.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- FAQ -->
   <section class="section section--white">
     <div class="container">
@@ -557,6 +623,93 @@ import Layout from '../layouts/Layout.astro';
     background: var(--white);
   }
 
+  /* ---- Timeline ---- */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    max-width: 660px;
+  }
+
+  .tl-item {
+    display: grid;
+    grid-template-columns: 80px 32px 1fr;
+    gap: 0 1.25rem;
+    align-items: start;
+  }
+
+  .tl-time {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding-top: 0.2rem;
+  }
+
+  .tl-hr {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: var(--yellow);
+    line-height: 1;
+  }
+
+  .tl-ampm {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .tl-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 0.22rem;
+  }
+
+  .tl-dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--yellow);
+    flex-shrink: 0;
+  }
+
+  .tl-dot--end {
+    background: transparent;
+    border: 3px solid var(--yellow);
+  }
+
+  .tl-line-seg {
+    width: 2px;
+    background: #2a2a2a;
+    flex: 1;
+    min-height: 2rem;
+    margin: 0.4rem 0;
+  }
+
+  .tl-body { padding-bottom: 2.25rem; }
+  .tl-item--last .tl-body { padding-bottom: 0; }
+
+  .tl-title {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--white);
+    margin: 0 0 0.4rem;
+    line-height: 1.2;
+    padding-top: 0.05rem;
+  }
+
+  .tl-desc {
+    font-size: 1rem;
+    line-height: 1.65;
+    color: #aaa;
+    margin: 0;
+  }
+
   /* ---- Responsive ---- */
   @media (max-width: 960px) {
     .prose-layout { grid-template-columns: 1fr; gap: 1.25rem; }
@@ -573,5 +726,7 @@ import Layout from '../layouts/Layout.astro';
     .steps-grid { grid-template-columns: 1fr; }
     .rider-cards { grid-template-columns: 1fr; }
     .details-grid { grid-template-columns: 1fr; }
+    .tl-item { grid-template-columns: 62px 26px 1fr; gap: 0 0.85rem; }
+    .tl-hr { font-size: 1.2rem; }
   }
 </style>

@@ -4,8 +4,11 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout
   title="Results"
-  description="Tour de Lakewood 2026 results — posted after the event on July 11th, 2026."
+  description="Tour de Lakewood 2026 results — submit your GPX after the July 11th ride to claim your leaderboard spot."
 >
+  <script is:inline slot="head" src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+
+  <!-- HERO -->
   <section class="hero">
     <div class="hero-inner">
       <p class="eyebrow">Tour de Lakewood 2026</p>
@@ -16,6 +19,7 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
+  <!-- TBD — shown before July 11 8am -->
   <section id="tbd-section" class="tbd-section">
     <div class="container">
       <div class="tbd-card">
@@ -23,14 +27,12 @@ import Layout from '../layouts/Layout.astro';
           <span class="dot"></span>
           <span>Event coming up &mdash; no results yet</span>
         </div>
-
-        <h2 class="tbd-h2">Check back on July 12th.</h2>
+        <h2 class="tbd-h2">Check back on July 11th.</h2>
         <p class="tbd-body">
-          Tour de Lakewood takes place on July 11th, 2026. Results will be posted here
-          after the event: three leaderboards &mdash; most total distance, most map coverage,
-          and most elevation gain.
+          Tour de Lakewood takes place on July 11th, 2026. After the ride, submit
+          your GPX here to claim your spot on three leaderboards: most total distance
+          in Lakewood, most map coverage, and most elevation gain.
         </p>
-
         <p class="tbd-eyebrow">Event starts in</p>
         <div class="countdown" aria-label="Countdown to July 11, 2026 at 8:00 AM">
           <div class="cd-block">
@@ -53,13 +55,11 @@ import Layout from '../layouts/Layout.astro';
             <span class="cd-unit">Sec</span>
           </div>
         </div>
-
         <div class="tbd-meta">
           <div class="tbd-meta-row">Saturday, July 11th, 2026</div>
           <div class="tbd-meta-row">8:00 AM &ndash; 8:00 PM Eastern</div>
           <div class="tbd-meta-row">Lakewood, Ohio</div>
         </div>
-
         <div class="tbd-actions">
           <a href="/about" class="btn-yellow">Learn about the ride</a>
           <a href="/distance-calculator" class="btn-ghost">Route Analyzer</a>
@@ -67,14 +67,116 @@ import Layout from '../layouts/Layout.astro';
       </div>
     </div>
   </section>
-  <!-- Results (shown after feature flag unlocks) -->
-  <section id="results-section" class="results-live-section">
+
+  <!-- SUBMIT RESULTS — unlocks July 11 8am (or ?preview for testing) -->
+  <section id="submit-section" class="submit-section" style="display:none">
     <div class="container">
+      <div id="preview-banner" class="preview-banner" style="display:none">
+        Preview mode &mdash; results page is not yet live to the public.
+      </div>
 
-      <p class="section-tag">2026 Final Results</p>
+      <p class="section-tag">Submit Your Results</p>
+      <h2 class="submit-h2">Upload your GPX,<br />claim your place.</h2>
 
-      <div class="lb-grid">
+      <div class="submit-layout">
 
+        <!-- Upload / analysis card -->
+        <div class="upload-card">
+
+          <!-- drop zone (default visible state) -->
+          <div id="dropZone" class="drop-zone">
+            <div class="drop-icon-wrap">
+              <svg class="drop-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </div>
+            <p class="drop-label">Drop your GPX file here</p>
+            <p class="drop-hint">or click to upload &middot; one file</p>
+            <input type="file" id="fileInput" accept=".gpx" class="sr-only" />
+          </div>
+
+          <!-- processing -->
+          <div id="processingState" class="processing-state" style="display:none">
+            <div class="spinner"></div>
+            <p class="processing-text">Analyzing route&hellip;</p>
+            <p class="processing-sub" id="processingMsg">Loading road network&hellip;</p>
+          </div>
+
+          <!-- stats + submit form -->
+          <div id="statsState" class="stats-state" style="display:none">
+            <div class="stats-grid">
+              <div class="stat-item">
+                <div class="stat-val" id="stat-miles">—</div>
+                <div class="stat-lbl">Miles in Lakewood</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-val" id="stat-coverage">—</div>
+                <div class="stat-lbl">Road Coverage</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-val" id="stat-elevation">—</div>
+                <div class="stat-lbl">Elevation Gain</div>
+              </div>
+            </div>
+            <div class="name-form">
+              <label class="name-label" for="riderName">Your name for the leaderboard</label>
+              <input type="text" id="riderName" class="name-input" placeholder="e.g. Jon Bobel" maxlength="60" autocomplete="name" />
+              <button id="submitBtn" class="submit-btn">Post to Leaderboard &rarr;</button>
+              <button id="resetBtn" class="reset-link">Upload a different file</button>
+            </div>
+          </div>
+
+          <!-- success -->
+          <div id="successState" class="success-state" style="display:none">
+            <div class="success-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="success-svg" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <h3 class="success-title">Results submitted!</h3>
+            <p class="success-desc">Your results are on the leaderboard below.</p>
+            <button id="submitAnother" class="reset-link">Submit another</button>
+          </div>
+
+          <!-- error -->
+          <div id="errorState" class="error-state" style="display:none">
+            <p id="errorMsg" class="error-msg"></p>
+            <button id="retryBtn" class="reset-link">Try again</button>
+          </div>
+
+        </div>
+
+        <!-- info panel -->
+        <div class="submit-info">
+          <h3 class="info-title">How it works</h3>
+          <ol class="info-steps">
+            <li>Upload the GPX from your Strava, Garmin, or any GPS device</li>
+            <li>Your route is analyzed: miles inside Lakewood, road coverage %, and elevation gain</li>
+            <li>Enter your name and post to the leaderboard</li>
+          </ol>
+          <p class="info-note">
+            Uses the same engine as the
+            <a href="/distance-calculator" class="info-link">Route Analyzer tool</a>.
+            Processing may take 15&ndash;30 seconds on the first run.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- LEADERBOARD — unlocks July 11 8am alongside submit section -->
+  <section id="leaderboard-section" class="results-live-section" style="display:none">
+    <div class="container">
+      <p class="section-tag">2026 Leaderboard</p>
+
+      <div id="lb-empty" class="lb-empty">
+        <p class="lb-empty-msg">No results yet &mdash; be the first to submit your GPX above.</p>
+      </div>
+
+      <div class="lb-grid" id="lb-grid" style="display:none">
         <div class="lb-card">
           <div class="lb-header">
             <h2 class="lb-cat">Most Distance</h2>
@@ -82,7 +184,6 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <div id="lb-distance" class="lb-list"></div>
         </div>
-
         <div class="lb-card">
           <div class="lb-header">
             <h2 class="lb-cat">Most Coverage</h2>
@@ -90,7 +191,6 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <div id="lb-coverage" class="lb-list"></div>
         </div>
-
         <div class="lb-card">
           <div class="lb-header">
             <h2 class="lb-cat">Most Elevation</h2>
@@ -98,49 +198,508 @@ import Layout from '../layouts/Layout.astro';
           </div>
           <div id="lb-elevation" class="lb-list"></div>
         </div>
-
       </div>
     </div>
   </section>
 </Layout>
 
 <script>
-  // ── Results data — fill these in after the event ──────────────────────────
-  // Each array is ordered 1st → last place.
-  const RESULTS = {
-    distance: [
-      { name: 'Rider Name', value: '—', unit: 'mi' },
-      { name: 'Rider Name', value: '—', unit: 'mi' },
-      { name: 'Rider Name', value: '—', unit: 'mi' },
-    ],
-    coverage: [
-      { name: 'Rider Name', value: '—', unit: '%' },
-      { name: 'Rider Name', value: '—', unit: '%' },
-      { name: 'Rider Name', value: '—', unit: '%' },
-    ],
-    elevation: [
-      { name: 'Rider Name', value: '—', unit: 'ft' },
-      { name: 'Rider Name', value: '—', unit: 'ft' },
-      { name: 'Rider Name', value: '—', unit: 'ft' },
-    ],
+  // @ts-nocheck
+  import { createClient } from '@supabase/supabase-js';
+
+  // ── Supabase ──────────────────────────────────────────────────────────────
+  const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
+  const SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = (SUPABASE_URL && SUPABASE_KEY)
+    ? createClient(SUPABASE_URL, SUPABASE_KEY)
+    : null;
+
+  // ── Feature gate — locked until July 11 8am ET; use ?preview to test ─────
+  const RACE_START_MS = new Date('2026-07-11T08:00:00-04:00').getTime();
+  const preview     = new URLSearchParams(location.search).has('preview');
+  const raceStarted = preview || Date.now() >= RACE_START_MS;
+
+  const tbdEl    = document.getElementById('tbd-section');
+  const submitEl = document.getElementById('submit-section');
+  const lbEl     = document.getElementById('leaderboard-section');
+  const prevBanner = document.getElementById('preview-banner');
+
+  if (raceStarted) {
+    if (tbdEl)    tbdEl.style.display    = 'none';
+    if (submitEl) submitEl.style.display = '';
+    if (lbEl)     lbEl.style.display     = '';
+  }
+  if (prevBanner && preview) prevBanner.style.display = '';
+
+  // ── Lakewood boundary (same polygon as Route Analyzer) ───────────────────
+  const lakewoodBoundary = {
+    type: 'Feature',
+    geometry: {
+      type: 'Polygon',
+      coordinates: [[
+        [-81.843982, 41.494593],
+        [-81.840659, 41.492346],
+        [-81.836965, 41.489937],
+        [-81.836059, 41.489347],
+        [-81.835058, 41.488847],
+        [-81.833858, 41.487847],
+        [-81.832306, 41.486416],
+        [-81.8317644, 41.4856877],
+        [-81.8314012, 41.4848328],
+        [-81.8312016, 41.4843079],
+        [-81.8312026, 41.4831243],
+        [-81.8313019, 41.4827507],
+        [-81.8315987, 41.4819781],
+        [-81.8329701, 41.4804274],
+        [-81.833953, 41.478713],
+        [-81.833234, 41.47705],
+        [-81.830219, 41.476886],
+        [-81.829414, 41.477167],
+        [-81.827639, 41.477708],
+        [-81.8273635, 41.4776805],
+        [-81.821904, 41.477136],
+        [-81.823559, 41.474849],
+        [-81.823706, 41.4741125],
+        [-81.8238047, 41.4736178],
+        [-81.824158, 41.471848],
+        [-81.82403, 41.471438],
+        [-81.824058, 41.470748],
+        [-81.825185, 41.470736],
+        [-81.826323, 41.469962],
+        [-81.827374, 41.470757],
+        [-81.832243, 41.470875],
+        [-81.832698, 41.470485],
+        [-81.832806, 41.470485],
+        [-81.8330821, 41.4705254],
+        [-81.833903, 41.470654],
+        [-81.834089, 41.470667],
+        [-81.837112, 41.469134],
+        [-81.837139, 41.469041],
+        [-81.837488, 41.468023],
+        [-81.837624, 41.467601],
+        [-81.837271, 41.467263],
+        [-81.8368, 41.466018],
+        [-81.835608, 41.464919],
+        [-81.836573, 41.464596],
+        [-81.837358, 41.464247],
+        [-81.837258, 41.463447],
+        [-81.834958, 41.463247],
+        [-81.834058, 41.464347],
+        [-81.833623, 41.464202],
+        [-81.833158, 41.464048],
+        [-81.832958, 41.463648],
+        [-81.831958, 41.463248],
+        [-81.832143, 41.464651],
+        [-81.832867, 41.464752],
+        [-81.8336, 41.465345],
+        [-81.836119, 41.467387],
+        [-81.83553, 41.469617],
+        [-81.8331771, 41.4693027],
+        [-81.8326776, 41.4692177],
+        [-81.831941, 41.468941],
+        [-81.830089, 41.468101],
+        [-81.8261684, 41.4681343],
+        [-81.824558, 41.468148],
+        [-81.8221175, 41.4681358],
+        [-81.8208104, 41.468124],
+        [-81.8195138, 41.4681122],
+        [-81.8189816, 41.4681122],
+        [-81.8184713, 41.4681472],
+        [-81.818063, 41.468145],
+        [-81.8177062, 41.4680863],
+        [-81.8173772, 41.4680016],
+        [-81.8167526, 41.4678425],
+        [-81.8163369, 41.4677517],
+        [-81.815674, 41.467529],
+        [-81.8152641, 41.4680553],
+        [-81.8141418, 41.4680332],
+        [-81.8118693, 41.4680132],
+        [-81.8107805, 41.4680092],
+        [-81.8106005, 41.468006],
+        [-81.810396, 41.468003],
+        [-81.8104472, 41.4690603],
+        [-81.8106017, 41.4694904],
+        [-81.8107572, 41.4695527],
+        [-81.8107492, 41.4697678],
+        [-81.810357, 41.469941],
+        [-81.8088086, 41.4699566],
+        [-81.806064, 41.470083],
+        [-81.804739, 41.470148],
+        [-81.803435, 41.470042],
+        [-81.80053, 41.470008],
+        [-81.799999, 41.469922],
+        [-81.7974059, 41.469929],
+        [-81.7969663, 41.4699415],
+        [-81.7968161, 41.4699457],
+        [-81.7965141, 41.4699543],
+        [-81.7960775, 41.4699679],
+        [-81.7950413, 41.4700003],
+        [-81.7939402, 41.4700198],
+        [-81.7934539, 41.470032],
+        [-81.7929386, 41.4700449],
+        [-81.792055, 41.4700729],
+        [-81.7915473, 41.4700879],
+        [-81.79092, 41.4701266],
+        [-81.7903942, 41.4701882],
+        [-81.7898057, 41.4702978],
+        [-81.789748, 41.4703101],
+        [-81.7896994, 41.4703206],
+        [-81.7896669, 41.470326],
+        [-81.7893396, 41.4703885],
+        [-81.7890078, 41.4704519],
+        [-81.7885292, 41.470451],
+        [-81.7875014, 41.4704519],
+        [-81.7865133, 41.4704692],
+        [-81.7858008, 41.4704763],
+        [-81.7855427, 41.4704789],
+        [-81.7844921, 41.4704795],
+        [-81.7833725, 41.4704851],
+        [-81.783059, 41.470486],
+        [-81.780453, 41.469314],
+        [-81.7793624, 41.4697339],
+        [-81.7785283, 41.4700563],
+        [-81.7780534, 41.4702501],
+        [-81.7774937, 41.4704882],
+        [-81.7747545, 41.4715878],
+        [-81.7728831, 41.4723466],
+        [-81.770864, 41.4732132],
+        [-81.7706079, 41.473329],
+        [-81.7698487, 41.4736312],
+        [-81.7688028, 41.4739999],
+        [-81.7688036, 41.4746848],
+        [-81.7688044, 41.4754362],
+        [-81.768804, 41.4754918],
+        [-81.7687933, 41.4769251],
+        [-81.7687855, 41.4777346],
+        [-81.7687739, 41.4789449],
+        [-81.768772, 41.4794602],
+        [-81.7687744, 41.4796439],
+        [-81.7687641, 41.4798414],
+        [-81.7687604, 41.4811905],
+        [-81.76876, 41.4816548],
+        [-81.7687536, 41.4822667],
+        [-81.7687488, 41.4827011],
+        [-81.7687481, 41.4827647],
+        [-81.7687375, 41.4829423],
+        [-81.7687471, 41.483665],
+        [-81.7687444, 41.4842515],
+        [-81.76874, 41.4852213],
+        [-81.7687404, 41.4854621],
+        [-81.7687422, 41.4854739],
+        [-81.7687444, 41.4857179],
+        [-81.7687416, 41.4862449],
+        [-81.768742, 41.4866069],
+        [-81.7687424, 41.4869418],
+        [-81.7687431, 41.487528],
+        [-81.7687235, 41.4880629],
+        [-81.7687173, 41.4882763],
+        [-81.7687097, 41.488513],
+        [-81.7686995, 41.488854],
+        [-81.7686981, 41.4889872],
+        [-81.7686736, 41.4898924],
+        [-81.7686715, 41.4899705],
+        [-81.7686713, 41.4899735],
+        [-81.7686133, 41.4909595],
+        [-81.7685853, 41.4913856],
+        [-81.7685818, 41.4914395],
+        [-81.7685767, 41.4915172],
+        [-81.768576, 41.491636],
+        [-81.768912, 41.491664],
+        [-81.769032, 41.497326],
+        [-81.770245, 41.49755],
+        [-81.777786, 41.498773],
+        [-81.782212, 41.499655],
+        [-81.784189, 41.500048],
+        [-81.78521, 41.500048],
+        [-81.794234, 41.500048],
+        [-81.802425, 41.500048],
+        [-81.806419, 41.499584],
+        [-81.808583, 41.499332],
+        [-81.810963, 41.499172],
+        [-81.815384, 41.498806],
+        [-81.820562, 41.498066],
+        [-81.82703, 41.496913],
+        [-81.843982, 41.494593]
+      ]]
+    },
+    properties: { name: 'Lakewood, OH' }
   };
 
-  // ── Feature flag ──────────────────────────────────────────────────────────
-  // Results go live at 8 pm ET on July 11, 2026.
-  // To preview locally: add ?preview to the URL (e.g. /results?preview)
-  const LAUNCH_MS = new Date('2026-07-11T20:00:00-04:00').getTime();
-  const preview   = new URLSearchParams(location.search).has('preview');
-  const live      = preview || Date.now() >= LAUNCH_MS;
+  // ── Road network (shared cache key with Route Analyzer) ───────────────────
+  const OVERPASS     = 'https://overpass-api.de/api/interpreter';
+  const ROAD_CACHE_K = 'tdl_roads_v4';
+  const CACHE_TTL    = 7 * 24 * 60 * 60 * 1000;
+  const SNAP_KM      = 0.025;
+  const HW_FILTER    = 'primary|secondary|tertiary|unclassified|residential|living_street|cycleway';
 
-  const tbdEl     = document.getElementById('tbd-section');
-  const resultsEl = document.getElementById('results-section');
-  if (tbdEl)     tbdEl.style.display     = live ? 'none' : '';
-  if (resultsEl) resultsEl.style.display = live ? ''     : 'none';
+  let roadNet = null;
+  let roadPromise = null;
 
-  // ── Render leaderboards ───────────────────────────────────────────────────
+  async function fetchRoads() {
+    if (roadNet) return roadNet;
+    try {
+      const c = JSON.parse(localStorage.getItem(ROAD_CACHE_K));
+      if (c && Date.now() - c.ts < CACHE_TTL) { roadNet = c.d; return roadNet; }
+    } catch (_) {}
+    const q = `[out:json][timeout:60];(way["highway"~"^(${HW_FILTER})$"](41.463,-81.844,41.501,-81.769););out geom;`;
+    const r  = await fetch(OVERPASS, { method: 'POST', body: q });
+    if (!r.ok) throw new Error(`Overpass API error ${r.status}`);
+    const js = await r.json();
+    let totalMiles = 0;
+    const features = [];
+    for (const el of js.elements) {
+      if (el.type !== 'way' || !el.geometry || el.geometry.length < 2) continue;
+      const coords = el.geometry.map(n => [n.lon, n.lat]);
+      const feat = {
+        type: 'Feature',
+        properties: { id: el.id },
+        geometry: { type: 'LineString', coordinates: coords }
+      };
+      if (!turf.booleanIntersects(feat, lakewoodBoundary)) continue;
+      totalMiles += turf.length(feat, { units: 'miles' });
+      features.push(feat);
+    }
+    roadNet = { type: 'FeatureCollection', features, totalMiles };
+    try { localStorage.setItem(ROAD_CACHE_K, JSON.stringify({ ts: Date.now(), d: roadNet })); } catch (_) {}
+    return roadNet;
+  }
+
+  function loadRoads() {
+    if (!roadPromise) roadPromise = fetchRoads();
+    return roadPromise;
+  }
+
+  async function analyzeRoads(coords) {
+    const net     = await loadRoads();
+    const buf     = turf.buffer(turf.lineString(coords), SNAP_KM, { units: 'kilometers' });
+    const bufEdge = turf.polygonToLine(buf);
+    let coveredMiles = 0;
+    for (const road of net.features) {
+      if (!turf.booleanIntersects(road, buf)) continue;
+      let inside = 0;
+      try {
+        const split = turf.lineSplit(road, bufEdge);
+        const segs  = split.features.length > 0 ? split.features : [road];
+        for (const seg of segs) {
+          const len = turf.length(seg, { units: 'miles' });
+          if (!len) continue;
+          const mid = turf.along(seg, len / 2, { units: 'miles' });
+          if (turf.booleanPointInPolygon(mid, buf)) inside += len;
+        }
+      } catch (_) {
+        inside = turf.length(road, { units: 'miles' });
+      }
+      coveredMiles += inside;
+    }
+    const pct = net.totalMiles > 0 ? Math.min(100, (coveredMiles / net.totalMiles) * 100) : 0;
+    return { pct };
+  }
+
+  // ── GPX parsing ───────────────────────────────────────────────────────────
+  function parseGPX(gpxText) {
+    const parser = new DOMParser();
+    const doc    = parser.parseFromString(gpxText, 'text/xml');
+    const trkpts = [...doc.querySelectorAll('trkpt')];
+    const coords = trkpts.map(pt => [
+      parseFloat(pt.getAttribute('lon')),
+      parseFloat(pt.getAttribute('lat')),
+    ]);
+    if (!coords.length) {
+      doc.querySelectorAll('wpt').forEach(pt => {
+        coords.push([parseFloat(pt.getAttribute('lon')), parseFloat(pt.getAttribute('lat'))]);
+      });
+    }
+    return { coords, trkpts };
+  }
+
+  function calcElevationGainFt(trkpts) {
+    let gain = 0, prevEle = null, prevInside = false;
+    for (const pt of trkpts) {
+      const lon = parseFloat(pt.getAttribute('lon'));
+      const lat = parseFloat(pt.getAttribute('lat'));
+      const inside = turf.booleanPointInPolygon(turf.point([lon, lat]), lakewoodBoundary);
+      const eleEl = pt.querySelector('ele');
+      if (!eleEl) continue;
+      const ele = parseFloat(eleEl.textContent.trim());
+      if (isNaN(ele)) continue;
+      if (prevEle !== null && ele > prevEle && inside && prevInside) {
+        gain += (ele - prevEle);
+      }
+      prevEle = ele;
+      prevInside = inside;
+    }
+    return gain * 3.28084; // metres → feet, Lakewood segments only
+  }
+
+  // ── UI state machine ──────────────────────────────────────────────────────
+  const STATES = {
+    upload:     'dropZone',
+    processing: 'processingState',
+    stats:      'statsState',
+    success:    'successState',
+    error:      'errorState',
+  };
+
+  function setState(state) {
+    for (const [s, id] of Object.entries(STATES)) {
+      const el = document.getElementById(id);
+      if (el) el.style.display = s === state ? '' : 'none';
+    }
+  }
+
+  let currentStats = null;
+
+  // ── File handling ─────────────────────────────────────────────────────────
+  const dropZone  = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+
+  dropZone?.addEventListener('click', () => fileInput?.click());
+  fileInput?.addEventListener('change', () => {
+    if (fileInput.files?.[0]) processFile(fileInput.files[0]);
+  });
+  dropZone?.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+  dropZone?.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer?.files[0];
+    if (file) processFile(file);
+  });
+
+  document.getElementById('resetBtn')?.addEventListener('click', resetForm);
+  document.getElementById('retryBtn')?.addEventListener('click', resetForm);
+  document.getElementById('submitAnother')?.addEventListener('click', () => {
+    resetForm();
+    loadLeaderboard();
+  });
+
+  function resetForm() {
+    currentStats = null;
+    if (fileInput) fileInput.value = '';
+    const btn = document.getElementById('submitBtn');
+    if (btn) { btn.textContent = 'Post to Leaderboard →'; btn.disabled = false; }
+    const nameInput = document.getElementById('riderName');
+    if (nameInput) nameInput.value = '';
+    setState('upload');
+  }
+
+  // ── Analysis pipeline ─────────────────────────────────────────────────────
+  async function processFile(file) {
+    setState('processing');
+    const msgEl = document.getElementById('processingMsg');
+
+    try {
+      if (msgEl) msgEl.textContent = 'Parsing GPX file…';
+      const text = await file.text();
+      const { coords, trkpts } = parseGPX(text);
+      if (!coords.length) throw new Error('No GPS track data found in this file.');
+
+      if (msgEl) msgEl.textContent = 'Loading Lakewood road network…';
+
+      let lakewoodMiles = 0;
+      let insideSegFound = false;
+      if (coords.length > 1) {
+        const line = turf.lineString(coords);
+        try {
+          const split = turf.lineSplit(line, turf.polygonToLine(lakewoodBoundary));
+          if (split?.features?.length) {
+            for (const seg of split.features) {
+              const len = turf.length(seg, { units: 'miles' });
+              if (!len) continue;
+              const mid = turf.along(seg, len / 2, { units: 'miles' });
+              if (turf.booleanPointInPolygon(mid, lakewoodBoundary)) {
+                lakewoodMiles += len;
+                insideSegFound = true;
+              }
+            }
+          }
+        } catch (_) {}
+
+        // Fallback: segment midpoints — runs when route doesn't cross the boundary
+        // (entirely inside or entirely outside Lakewood) or when lineSplit throws
+        if (!insideSegFound) {
+          for (let j = 0; j < coords.length - 1; j++) {
+            const [a, b] = [coords[j], coords[j + 1]];
+            const seg = turf.lineString([a, b]);
+            const len = turf.length(seg, { units: 'miles' });
+            if (!len) continue;
+            const mid = turf.point([(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]);
+            if (turf.booleanPointInPolygon(mid, lakewoodBoundary)) lakewoodMiles += len;
+          }
+        }
+      }
+
+      if (msgEl) msgEl.textContent = 'Analyzing road coverage…';
+      const roads  = await analyzeRoads(coords);
+      const elevFt = calcElevationGainFt(trkpts);
+
+      currentStats = {
+        lakewoodMiles: Math.round(lakewoodMiles * 100) / 100,
+        coveragePct:   Math.round(roads.pct * 100) / 100,
+        elevationFt:   Math.round(elevFt),
+      };
+
+      const mEl = document.getElementById('stat-miles');
+      const cEl = document.getElementById('stat-coverage');
+      const eEl = document.getElementById('stat-elevation');
+      if (mEl) mEl.textContent = currentStats.lakewoodMiles.toFixed(2) + ' mi';
+      if (cEl) cEl.textContent = currentStats.coveragePct.toFixed(1) + '%';
+      if (eEl) eEl.textContent = currentStats.elevationFt.toLocaleString() + ' ft';
+
+      setState('stats');
+    } catch (err) {
+      const errEl = document.getElementById('errorMsg');
+      if (errEl) errEl.textContent = err.message || 'Analysis failed. Please try again.';
+      setState('error');
+    }
+  }
+
+  // ── Submit to Supabase ────────────────────────────────────────────────────
+  document.getElementById('submitBtn')?.addEventListener('click', async () => {
+    const nameInput = document.getElementById('riderName');
+    const name = nameInput?.value.trim();
+    if (!name) { nameInput?.focus(); return; }
+    if (!currentStats) return;
+
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = 'Submitting…';
+    btn.disabled = true;
+
+    if (!supabase) {
+      const errEl = document.getElementById('errorMsg');
+      if (errEl) errEl.textContent = 'Leaderboard database not yet configured. Contact the organizer.';
+      setState('error');
+      btn.textContent = 'Post to Leaderboard →';
+      btn.disabled = false;
+      return;
+    }
+
+    const { error } = await supabase.from('race_submissions').insert({
+      rider_name:     name,
+      lakewood_miles: currentStats.lakewoodMiles,
+      coverage_pct:   currentStats.coveragePct,
+      elevation_ft:   currentStats.elevationFt,
+    });
+
+    if (error) {
+      const errEl = document.getElementById('errorMsg');
+      if (errEl) errEl.textContent = `Submission failed: ${error.message}`;
+      setState('error');
+      btn.textContent = 'Post to Leaderboard →';
+      btn.disabled = false;
+    } else {
+      setState('success');
+      loadLeaderboard();
+    }
+  });
+
+  // ── Leaderboard ───────────────────────────────────────────────────────────
   const RANK_CLASS = ['lb-rank--gold', 'lb-rank--silver', 'lb-rank--bronze'];
 
-  function renderLeaderboard(id, entries) {
+  function renderLbList(id, entries, field, fmtFn) {
     const el = document.getElementById(id);
     if (!el) return;
     el.innerHTML = entries.map((e, i) => {
@@ -148,26 +707,58 @@ import Layout from '../layouts/Layout.astro';
       return `
         <div class="lb-row${rowMod}">
           <span class="lb-rank ${RANK_CLASS[i] || ''}">${i + 1}</span>
-          <span class="lb-name">${e.name}</span>
-          <span class="lb-val">${e.value}<span class="lb-unit"> ${e.unit}</span></span>
-        </div>
-      `;
+          <span class="lb-name">${e.rider_name}</span>
+          <span class="lb-val">${fmtFn(e[field])}</span>
+        </div>`;
     }).join('');
   }
 
-  if (live) {
-    renderLeaderboard('lb-distance', RESULTS.distance);
-    renderLeaderboard('lb-coverage', RESULTS.coverage);
-    renderLeaderboard('lb-elevation', RESULTS.elevation);
+  async function loadLeaderboard() {
+    const emptyEl = document.getElementById('lb-empty');
+    const gridEl  = document.getElementById('lb-grid');
+    const emptyMsg = emptyEl?.querySelector('.lb-empty-msg');
+
+    if (!supabase) {
+      if (emptyMsg) emptyMsg.textContent = 'Leaderboard not yet configured — check back on race day.';
+      if (emptyEl) emptyEl.style.display = '';
+      if (gridEl)  gridEl.style.display  = 'none';
+      return;
+    }
+
+    const { data } = await supabase
+      .from('race_submissions')
+      .select('rider_name, lakewood_miles, coverage_pct, elevation_ft')
+      .order('submitted_at', { ascending: true });
+
+    if (!data?.length) {
+      if (emptyEl) emptyEl.style.display = '';
+      if (gridEl)  gridEl.style.display  = 'none';
+      return;
+    }
+
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (gridEl)  gridEl.style.display  = '';
+
+    const byDist = [...data].sort((a, b) => b.lakewood_miles - a.lakewood_miles).slice(0, 10);
+    const byCov  = [...data].sort((a, b) => b.coverage_pct   - a.coverage_pct  ).slice(0, 10);
+    const byElev = [...data].sort((a, b) => b.elevation_ft   - a.elevation_ft  ).slice(0, 10);
+
+    renderLbList('lb-distance', byDist, 'lakewood_miles', v => `${(+v).toFixed(2)} mi`);
+    renderLbList('lb-coverage', byCov,  'coverage_pct',   v => `${(+v).toFixed(1)}%`);
+    renderLbList('lb-elevation', byElev, 'elevation_ft',  v => `${Math.round(+v).toLocaleString()} ft`);
   }
 
-  // ── Countdown (only runs when TBD section is showing) ────────────────────
-  if (!live) {
+  // ── Init ──────────────────────────────────────────────────────────────────
+  if (raceStarted) {
+    setState('upload');
+    loadLeaderboard();
+  } else {
+    // countdown timer for TBD section
     const TARGET = new Date('2026-07-11T08:00:00-04:00').getTime();
-    const pad = (n) => String(n).padStart(2, '0');
+    const pad = n => String(n).padStart(2, '0');
     const tick = () => {
       const diff = Math.max(0, TARGET - Date.now());
-      const s = Math.floor(diff / 1000);
+      const s    = Math.floor(diff / 1000);
       const d  = document.getElementById('r-days');
       const h  = document.getElementById('r-hours');
       const m  = document.getElementById('r-mins');
@@ -182,10 +773,18 @@ import Layout from '../layouts/Layout.astro';
   }
 </script>
 
-<style>
+<style is:global>
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0);
+    white-space: nowrap; border: 0;
+  }
+
   .container { max-width: var(--container); margin: 0 auto; }
 
-  /* Hero */
+  /* ── Hero ── */
   .hero {
     background: var(--purple);
     padding: 4.5rem 1.5rem 4rem;
@@ -214,7 +813,7 @@ import Layout from '../layouts/Layout.astro';
 
   .hero-h1 em { font-style: normal; color: var(--yellow); }
 
-  /* TBD section */
+  /* ── TBD section ── */
   .tbd-section {
     background: var(--gray-light);
     padding: 5rem 1.5rem;
@@ -246,8 +845,7 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .dot {
-    width: 7px;
-    height: 7px;
+    width: 7px; height: 7px;
     border-radius: 50%;
     background: #F2A900;
     box-shadow: 0 0 0 3px rgba(242,169,0,0.25);
@@ -279,7 +877,6 @@ import Layout from '../layouts/Layout.astro';
     margin: 0 0 0.85rem;
   }
 
-  /* Countdown */
   .countdown {
     display: flex;
     align-items: flex-start;
@@ -288,12 +885,7 @@ import Layout from '../layouts/Layout.astro';
     margin-bottom: 1.75rem;
   }
 
-  .cd-block {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-  }
+  .cd-block { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
 
   .cd-val {
     display: block;
@@ -327,7 +919,6 @@ import Layout from '../layouts/Layout.astro';
     padding-top: 0.05em;
   }
 
-  /* Meta rows */
   .tbd-meta {
     display: flex;
     flex-direction: column;
@@ -339,12 +930,8 @@ import Layout from '../layouts/Layout.astro';
     padding: 1rem 1.25rem;
   }
 
-  .tbd-meta-row {
-    font-size: 1rem;
-    color: var(--text-muted);
-  }
+  .tbd-meta-row { font-size: 1rem; color: var(--text-muted); }
 
-  /* Buttons */
   .tbd-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
 
   .btn-yellow {
@@ -378,16 +965,24 @@ import Layout from '../layouts/Layout.astro';
   }
   .btn-ghost:hover { border-color: var(--text); }
 
-  @media (max-width: 600px) {
-    .tbd-section { padding: 3rem 1.25rem; }
-    .tbd-card { padding: 1.75rem 1.25rem; }
-    .cd-val { font-size: 2.1rem; min-width: 52px; }
+  /* ── Preview banner ── */
+  .preview-banner {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #856404;
+    border-radius: 0.5rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    text-align: center;
   }
 
-  /* ── Live results section ───────────────────────────────────────────────── */
-  .results-live-section {
-    background: var(--gray-light);
-    padding: 3rem 1.5rem 5rem;
+  /* ── Submit section ── */
+  .submit-section {
+    background: var(--white);
+    padding: 5rem 1.5rem;
+    border-bottom: 1px solid #e8e8e8;
   }
 
   .section-tag {
@@ -396,10 +991,281 @@ import Layout from '../layouts/Layout.astro';
     letter-spacing: 0.16em;
     color: var(--text-soft);
     font-weight: 700;
-    margin: 0 0 1.5rem;
+    margin: 0 0 1.25rem;
     padding-left: 0.75rem;
     border-left: 3px solid var(--yellow);
   }
+
+  .submit-h2 {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    line-height: 1.02;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    margin: 0 0 2.5rem;
+  }
+
+  .submit-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  /* Upload card */
+  .upload-card {
+    background: var(--gray-light);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    min-height: 220px;
+  }
+
+  .drop-zone {
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    background: var(--white);
+    border-bottom: 2px dashed var(--card-border);
+  }
+
+  .drop-zone:hover, .drop-zone.dragover {
+    background: var(--yellow-bg);
+    border-color: var(--yellow-border);
+  }
+
+  .drop-icon-wrap { margin-bottom: 0.85rem; }
+
+  .drop-icon-svg {
+    width: 40px; height: 40px;
+    stroke: var(--text-soft);
+    display: block;
+    margin: 0 auto;
+  }
+
+  .drop-label {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 1.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    margin: 0 0 0.35rem;
+  }
+
+  .drop-hint { font-size: 0.875rem; color: var(--text-soft); margin: 0; }
+
+  /* Processing */
+  .processing-state {
+    padding: 3rem 2rem;
+    text-align: center;
+    background: var(--white);
+  }
+
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid #e8e8e8;
+    border-top-color: var(--purple);
+    border-radius: 50%;
+    animation: tdl-spin 0.8s linear infinite;
+    margin: 0 auto;
+  }
+
+  @keyframes tdl-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  .processing-text {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 1rem 0 0.3rem;
+  }
+
+  .processing-sub { font-size: 0.875rem; color: var(--text-soft); margin: 0; }
+
+  /* Stats state */
+  .stats-state { padding: 1.5rem; background: var(--white); }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--card-border);
+    border: 1px solid var(--card-border);
+    border-radius: 0.65rem;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-item { background: var(--white); padding: 1.25rem 0.85rem; text-align: center; }
+
+  .stat-val {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--purple);
+    line-height: 1;
+    margin-bottom: 0.3rem;
+  }
+
+  .stat-lbl {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-soft);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  /* Name form */
+  .name-form { display: flex; flex-direction: column; gap: 0.65rem; }
+
+  .name-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-soft);
+  }
+
+  .name-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--card-border);
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-family: 'Barlow', 'Arial Narrow', system-ui, sans-serif;
+    color: var(--text);
+    background: var(--white);
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+  }
+  .name-input:focus { outline: none; border-color: var(--purple); }
+
+  .submit-btn {
+    background: var(--purple);
+    color: var(--white);
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.85rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    width: 100%;
+  }
+  .submit-btn:hover:not(:disabled) { background: #4a1d7a; }
+  .submit-btn:disabled { background: var(--card-border); color: var(--text-soft); cursor: not-allowed; }
+
+  .reset-link {
+    background: none;
+    border: none;
+    color: var(--text-soft);
+    font-size: 0.875rem;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    width: 100%;
+    text-align: center;
+  }
+  .reset-link:hover { color: var(--text); }
+
+  /* Success state */
+  .success-state { padding: 2.5rem 2rem; text-align: center; background: var(--white); }
+
+  .success-icon-wrap {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: #e8f5e9;
+    border: 2px solid #4caf50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.1rem;
+  }
+
+  .success-svg { width: 26px; height: 26px; stroke: #4caf50; }
+
+  .success-title {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text);
+    margin: 0 0 0.4rem;
+  }
+
+  .success-desc { font-size: 1rem; color: var(--text-muted); margin: 0 0 1rem; }
+
+  /* Error state */
+  .error-state { padding: 1.5rem; background: var(--white); }
+
+  .error-msg {
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    color: #c53030;
+    padding: 0.85rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    margin: 0 0 0.75rem;
+  }
+
+  /* Info panel */
+  .submit-info {
+    background: var(--purple);
+    border-radius: var(--radius);
+    padding: 2rem;
+    color: var(--white);
+    position: sticky;
+    top: calc(var(--nav-h) + 1.5rem);
+  }
+
+  .info-title {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--yellow);
+    margin: 0 0 1rem;
+  }
+
+  .info-steps {
+    margin: 0 0 1.25rem;
+    padding-left: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+  .info-steps li { font-size: 1rem; line-height: 1.6; color: #ccc; }
+
+  .info-note { font-size: 0.875rem; color: #888; margin: 0; line-height: 1.6; }
+  .info-link { color: var(--yellow); text-decoration: underline; text-underline-offset: 2px; }
+
+  /* ── Leaderboard section ── */
+  .results-live-section {
+    background: var(--gray-light);
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  .lb-empty {
+    background: var(--white);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+
+  .lb-empty-msg { font-size: 1rem; color: var(--text-muted); margin: 0; }
 
   .lb-grid {
     display: grid;
@@ -439,12 +1305,8 @@ import Layout from '../layouts/Layout.astro';
     font-weight: 600;
   }
 
-  .lb-list {
-    display: flex;
-    flex-direction: column;
-  }
+  .lb-list { display: flex; flex-direction: column; }
 
-  /* Winner row — purple card, yellow value */
   .lb-row {
     display: flex;
     align-items: center;
@@ -459,18 +1321,15 @@ import Layout from '../layouts/Layout.astro';
     padding: 1.1rem 1.25rem;
   }
   .lb-row--winner .lb-name { color: #fff; font-size: 1.05rem; }
-  .lb-row--winner .lb-val  { color: var(--yellow); font-size: 1.5rem; }
-  .lb-row--winner .lb-unit { color: rgba(255,255,255,0.5); }
+  .lb-row--winner .lb-val  { color: var(--yellow); font-size: 1.3rem; }
 
-  /* 2nd / 3rd place — subtle yellow tint */
   .lb-row--podium { background: var(--yellow-bg); }
 
   .lb-rank {
     font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
     font-size: 0.9rem;
     font-weight: 800;
-    width: 26px;
-    height: 26px;
+    width: 26px; height: 26px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -483,29 +1342,33 @@ import Layout from '../layouts/Layout.astro';
   .lb-rank--silver { background: #b8b8b8; color: #1b1b1b; }
   .lb-rank--bronze { background: #b87333; color: #fff; }
 
-  .lb-name {
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--text);
-    flex: 1;
-  }
+  .lb-name { font-weight: 600; font-size: 0.95rem; color: var(--text); flex: 1; }
 
   .lb-val {
     font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 800;
     color: var(--text);
     white-space: nowrap;
   }
 
-  .lb-unit {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-muted);
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .submit-layout { grid-template-columns: 1fr; }
+    .submit-info { position: static; }
   }
 
   @media (max-width: 860px) {
     .lb-grid { grid-template-columns: 1fr; }
     .results-live-section { padding: 2rem 1.25rem 4rem; }
+  }
+
+  @media (max-width: 600px) {
+    .tbd-section, .submit-section { padding: 3rem 1.25rem; }
+    .tbd-card { padding: 1.75rem 1.25rem; }
+    .cd-val { font-size: 2.1rem; min-width: 52px; }
+    .stats-grid { grid-template-columns: 1fr; gap: 0; }
+    .stat-item { border-bottom: 1px solid var(--card-border); }
+    .stat-item:last-child { border-bottom: none; }
   }
 </style>
