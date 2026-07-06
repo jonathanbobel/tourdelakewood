@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout
   title="Records"
-  description="All-time Tour de Lakewood records for map coverage, distance, and elevation — currently held by Nat Simonetti."
+  description="All-time Tour de Lakewood records for map coverage, distance, and elevation - currently held by Nat Simonetti."
 >
   <link slot="head" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <script is:inline slot="head" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -23,7 +23,7 @@ import Layout from '../layouts/Layout.astro';
         <em>Records</em>
       </h1>
       <p class="page-sub">
-        The marks to beat. Three categories, one record holder &mdash; for now.
+        The marks to beat. Three categories, one record holder - for now.
       </p>
     </div>
   </section>
@@ -34,7 +34,7 @@ import Layout from '../layouts/Layout.astro';
 
       <p class="section-tag">All-Time Records</p>
 
-      <!-- Coverage record — full width -->
+      <!-- Coverage record - full width -->
       <div class="record-card record-card--dark">
         <div class="rc-top">
           <div class="rc-meta">
@@ -50,7 +50,7 @@ import Layout from '../layouts/Layout.astro';
               <span>Computing&hellip;</span>
             </div>
             <div class="rc-stat-inner" id="coverage-stat" style="display:none">
-              <span class="rc-big" id="coverage-pct">—</span>
+              <span class="rc-big" id="coverage-pct">-</span>
               <span class="rc-unit">of roads covered</span>
             </div>
           </div>
@@ -247,11 +247,11 @@ import Layout from '../layouts/Layout.astro';
     } catch (e) {
       document.getElementById('coverage-loading').style.display = 'none';
       document.getElementById('coverage-stat').style.display = 'flex';
-      document.getElementById('coverage-pct').textContent = '—';
+      document.getElementById('coverage-pct').textContent = '-';
       return;
     }
 
-    // Draw the record GPX track — OSM tiles show the full street network
+    // Draw the record GPX track - OSM tiles show the full street network
     L.polyline(coords.map(c => [c[1], c[0]]), {
       color: '#5F259F', weight: 3, opacity: 0.85
     }).addTo(map);
@@ -264,7 +264,7 @@ import Layout from '../layouts/Layout.astro';
     } catch (_) {}
 
     if (pct == null) {
-      // Run the coverage analysis (slow — cached after first run)
+      // Run the coverage analysis (slow - cached after first run)
       const buf     = turf.buffer(turf.lineString(coords), 0.025, { units: 'kilometers' });
       const bufEdge = turf.polygonToLine(buf);
       let coveredMiles = 0;

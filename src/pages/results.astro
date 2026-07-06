@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout
   title="Results"
-  description="Tour de Lakewood 2026 results — submit your GPX after the July 11th ride to claim your leaderboard spot."
+  description="Tour de Lakewood 2026 results - submit your GPX after the July 11th ride to claim your leaderboard spot."
 >
   <script is:inline slot="head" src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
 
@@ -19,13 +19,13 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <!-- TBD — shown before July 11 8am -->
+  <!-- TBD - shown before July 11 8am -->
   <section id="tbd-section" class="tbd-section">
     <div class="container">
       <div class="tbd-card">
         <div class="tbd-badge">
           <span class="dot"></span>
-          <span>Event coming up &mdash; no results yet</span>
+          <span>Event coming up - no results yet</span>
         </div>
         <h2 class="tbd-h2">Check back on July 11th.</h2>
         <p class="tbd-body">
@@ -68,11 +68,11 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <!-- SUBMIT RESULTS — unlocks July 11 8am (or ?preview for testing) -->
+  <!-- SUBMIT RESULTS - unlocks July 11 8am (or ?preview for testing) -->
   <section id="submit-section" class="submit-section" style="display:none">
     <div class="container">
       <div id="preview-banner" class="preview-banner" style="display:none">
-        Preview mode &mdash; results page is not yet live to the public.
+        Preview mode - results page is not yet live to the public.
       </div>
 
       <p class="section-tag">Submit Your Results</p>
@@ -108,15 +108,15 @@ import Layout from '../layouts/Layout.astro';
           <div id="statsState" class="stats-state" style="display:none">
             <div class="stats-grid">
               <div class="stat-item">
-                <div class="stat-val" id="stat-miles">—</div>
+                <div class="stat-val" id="stat-miles">-</div>
                 <div class="stat-lbl">Miles in Lakewood</div>
               </div>
               <div class="stat-item">
-                <div class="stat-val" id="stat-coverage">—</div>
+                <div class="stat-val" id="stat-coverage">-</div>
                 <div class="stat-lbl">Road Coverage</div>
               </div>
               <div class="stat-item">
-                <div class="stat-val" id="stat-elevation">—</div>
+                <div class="stat-val" id="stat-elevation">-</div>
                 <div class="stat-lbl">Elevation Gain</div>
               </div>
             </div>
@@ -167,13 +167,13 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <!-- LEADERBOARD — unlocks July 11 8am alongside submit section -->
+  <!-- LEADERBOARD - unlocks July 11 8am alongside submit section -->
   <section id="leaderboard-section" class="results-live-section" style="display:none">
     <div class="container">
       <p class="section-tag">2026 Leaderboard</p>
 
       <div id="lb-empty" class="lb-empty">
-        <p class="lb-empty-msg">No results yet &mdash; be the first to submit your GPX above.</p>
+        <p class="lb-empty-msg">No results yet - be the first to submit your GPX above.</p>
       </div>
 
       <div class="lb-grid" id="lb-grid" style="display:none">
@@ -214,7 +214,7 @@ import Layout from '../layouts/Layout.astro';
     ? createClient(SUPABASE_URL, SUPABASE_KEY)
     : null;
 
-  // ── Feature gate — locked until July 11 8am ET; use ?preview to test ─────
+  // ── Feature gate - locked until July 11 8am ET; use ?preview to test ─────
   const RACE_START_MS = new Date('2026-07-11T08:00:00-04:00').getTime();
   const preview     = new URLSearchParams(location.search).has('preview');
   const raceStarted = preview || Date.now() >= RACE_START_MS;
@@ -618,7 +618,7 @@ import Layout from '../layouts/Layout.astro';
           }
         } catch (_) {}
 
-        // Fallback: segment midpoints — runs when route doesn't cross the boundary
+        // Fallback: segment midpoints - runs when route doesn't cross the boundary
         // (entirely inside or entirely outside Lakewood) or when lineSplit throws
         if (!insideSegFound) {
           for (let j = 0; j < coords.length - 1; j++) {
@@ -719,7 +719,7 @@ import Layout from '../layouts/Layout.astro';
     const emptyMsg = emptyEl?.querySelector('.lb-empty-msg');
 
     if (!supabase) {
-      if (emptyMsg) emptyMsg.textContent = 'Leaderboard not yet configured — check back on race day.';
+      if (emptyMsg) emptyMsg.textContent = 'Leaderboard not yet configured - check back on race day.';
       if (emptyEl) emptyEl.style.display = '';
       if (gridEl)  gridEl.style.display  = 'none';
       return;
@@ -739,9 +739,9 @@ import Layout from '../layouts/Layout.astro';
     if (emptyEl) emptyEl.style.display = 'none';
     if (gridEl)  gridEl.style.display  = '';
 
-    const byDist = [...data].sort((a, b) => b.lakewood_miles - a.lakewood_miles).slice(0, 10);
-    const byCov  = [...data].sort((a, b) => b.coverage_pct   - a.coverage_pct  ).slice(0, 10);
-    const byElev = [...data].sort((a, b) => b.elevation_ft   - a.elevation_ft  ).slice(0, 10);
+    const byDist = [...data].sort((a, b) => b.lakewood_miles - a.lakewood_miles);
+    const byCov  = [...data].sort((a, b) => b.coverage_pct   - a.coverage_pct  );
+    const byElev = [...data].sort((a, b) => b.elevation_ft   - a.elevation_ft  );
 
     renderLbList('lb-distance', byDist, 'lakewood_miles', v => `${(+v).toFixed(2)} mi`);
     renderLbList('lb-coverage', byCov,  'coverage_pct',   v => `${(+v).toFixed(1)}%`);

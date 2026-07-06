@@ -8,10 +8,10 @@ interface Props {
 
 const {
   title = 'Tour de Lakewood',
-  description = 'A free 12-hour community cycling event through Lakewood, Ohio — July 11th, 2026.',
+  description = 'A free 12-hour community cycling event through Lakewood, Ohio - July 11th, 2026.',
 } = Astro.props;
 
-const fullTitle = title === 'Tour de Lakewood' ? title : `${title} — Tour de Lakewood`;
+const fullTitle = title === 'Tour de Lakewood' ? title : `${title} - Tour de Lakewood`;
 
 const rawPath = Astro.url.pathname;
 const pathname = rawPath.length > 1 ? rawPath.replace(/\/$/, '') : rawPath;
@@ -74,7 +74,7 @@ const navLinks = [
   <body>
     <header class="l-header">
       <nav class="l-nav">
-        <a href="/" class="l-logo-link" aria-label="Tour de Lakewood — Home">
+        <a href="/" class="l-logo-link" aria-label="Tour de Lakewood - Home">
           <img src="/tour-de-lakewood.svg" alt="Tour de Lakewood" class="l-logo" />
         </a>
 
@@ -114,7 +114,7 @@ const navLinks = [
 
     <footer class="l-footer">
       <div class="l-footer-inner">
-        <p class="l-footer-copy">&copy; 2026 Tour de Lakewood &mdash; Lakewood, Ohio</p>
+        <p class="l-footer-copy">&copy; 2026 Tour de Lakewood - Lakewood, Ohio</p>
       </div>
     </footer>
 
