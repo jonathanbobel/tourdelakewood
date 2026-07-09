@@ -682,6 +682,7 @@ import Layout from '../layouts/Layout.astro';
       lakewood_miles: currentStats.lakewoodMiles,
       coverage_pct:   currentStats.coveragePct,
       elevation_ft:   currentStats.elevationFt,
+      year:           2026,
     });
 
     if (error) {
@@ -728,6 +729,7 @@ import Layout from '../layouts/Layout.astro';
     const { data } = await supabase
       .from('race_submissions')
       .select('rider_name, lakewood_miles, coverage_pct, elevation_ft')
+      .eq('year', 2026)
       .order('submitted_at', { ascending: true });
 
     if (!data?.length) {
