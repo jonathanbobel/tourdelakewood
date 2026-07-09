@@ -196,10 +196,12 @@ import Layout from '../layouts/Layout.astro';
             <h3 class="tl-title">Grand D&eacute;part - Madison Park</h3>
             <p class="tl-desc">
               Kick off the day at Madison Park in Lakewood. We&rsquo;ll do a group
-              ride under 10 miles to start - route TBD, will be posted on
-              RidewithGPS before the event. After that, the city is yours for the
+              ride under 10 miles to start. After that, the city is yours for the
               next 12 hours.
             </p>
+            <div class="tl-embed">
+              <iframe src="https://ridewithgps.com/embeds?type=route&id=56040956&sampleGraph=true" style="width: 1px; min-width: 100%; height: 500px; border: none;" scrolling="no" loading="lazy"></iframe>
+            </div>
           </div>
         </div>
 
@@ -713,6 +715,12 @@ import Layout from '../layouts/Layout.astro';
     line-height: 1.65;
     color: #aaa;
     margin: 0;
+  }
+
+  .tl-embed {
+    margin-top: 1.25rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
   }
 
   /* ---- Responsive ---- */
