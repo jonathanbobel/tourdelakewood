@@ -516,7 +516,7 @@ import Layout from '../layouts/Layout.astro';
       if (!eleEl) continue;
       const ele = parseFloat(eleEl.textContent.trim());
       if (isNaN(ele)) continue;
-      if (prevEle !== null && ele > prevEle && inside && prevInside) {
+      if (prevEle !== null && ele - prevEle > 1 && inside && prevInside) {
         gain += (ele - prevEle);
       }
       prevEle = ele;
