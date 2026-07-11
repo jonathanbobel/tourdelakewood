@@ -156,13 +156,7 @@ import Layout from '../layouts/Layout.astro';
             <li>Your route is analyzed: miles inside Lakewood, road coverage %, and elevation gain</li>
             <li>Enter your name and post to the leaderboard</li>
           </ol>
-          <p class="info-note">
-            Uses the same engine as the
-            <a href="/distance-calculator" class="info-link">Route Analyzer tool</a>.
-            Processing may take 15&ndash;30 seconds on the first run.
-          </p>
         </div>
-
       </div>
     </div>
   </section>
@@ -214,8 +208,8 @@ import Layout from '../layouts/Layout.astro';
     ? createClient(SUPABASE_URL, SUPABASE_KEY)
     : null;
 
-  // ── Feature gate - locked until July 11 8am ET; use ?preview to test ─────
-  const RACE_START_MS = new Date('2026-07-11T08:00:00-04:00').getTime();
+  // ── Feature gate - opened July 10 2026 ──────────────────────────────────
+  const RACE_START_MS = new Date('2026-07-10T00:00:00-04:00').getTime();
   const preview     = new URLSearchParams(location.search).has('preview');
   const raceStarted = preview || Date.now() >= RACE_START_MS;
 
