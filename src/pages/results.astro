@@ -3,8 +3,8 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout
-  title="Leaderboard"
-  description="Tour de Lakewood 2026 leaderboard - submit your GPX after the July 11th ride to claim your spot."
+  title="Results"
+  description="Tour de Lakewood 2026 results - submit your GPX after the July 11th ride to claim your leaderboard spot."
 >
   <script is:inline slot="head" src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
 
@@ -13,10 +13,9 @@ import Layout from '../layouts/Layout.astro';
     <div class="hero-inner">
       <p class="eyebrow">Tour de Lakewood 2026</p>
       <h1 class="hero-h1">
-        Leader<br />
+        Results<br />
         <em>Board</em>
       </h1>
-      <p class="hero-sub">Upload your GPX. See where you stack up. Bragging rights await.</p>
     </div>
   </section>
 
@@ -77,7 +76,7 @@ import Layout from '../layouts/Layout.astro';
       </div>
 
       <p class="section-tag">Submit Your Results</p>
-
+      
       <div class="submit-layout">
 
         <!-- Upload / analysis card -->
@@ -808,7 +807,6 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .hero-h1 em { font-style: normal; color: var(--yellow); }
-  .hero-sub { font-size: 1.05rem; line-height: 1.65; color: #ccc; max-width: 30rem; margin: 0.75rem 0 0; }
 
   /* ── TBD section ── */
   .tbd-section {
