@@ -507,22 +507,35 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function calcElevationGainFt(trkpts) {
-    let gain = 0, prevEle = null, prevInside = false;
+    // Collect elevation values for points inside Lakewood only
+    const elevations = [];
     for (const pt of trkpts) {
       const lon = parseFloat(pt.getAttribute('lon'));
       const lat = parseFloat(pt.getAttribute('lat'));
       const inside = turf.booleanPointInPolygon(turf.point([lon, lat]), lakewoodBoundary);
+      if (!inside) continue;
       const eleEl = pt.querySelector('ele');
       if (!eleEl) continue;
       const ele = parseFloat(eleEl.textContent.trim());
-      if (isNaN(ele)) continue;
-      if (prevEle !== null && ele - prevEle > 1 && inside && prevInside) {
-        gain += (ele - prevEle);
-      }
-      prevEle = ele;
-      prevInside = inside;
+      if (!isNaN(ele)) elevations.push(ele);
     }
-    return gain * 3.28084; // metres → feet, Lakewood segments only
+
+    if (elevations.length < 2) return 0;
+
+    // Smooth with a 10-point rolling average to kill GPS noise
+    const W = 10;
+    const smoothed = elevations.map((_, i) => {
+      const start = Math.max(0, i - Math.floor(W / 2));
+      const chunk = elevations.slice(start, start + W);
+      return chunk.reduce((a, b) => a + b, 0) / chunk.length;
+    });
+
+    let gain = 0;
+    for (let i = 1; i < smoothed.length; i++) {
+      if (smoothed[i] > smoothed[i - 1]) gain += smoothed[i] - smoothed[i - 1];
+    }
+
+    return gain * 3.28084; // metres → feet
   }
 
   // ── UI state machine ──────────────────────────────────────────────────────
