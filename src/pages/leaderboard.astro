@@ -522,8 +522,8 @@ import Layout from '../layouts/Layout.astro';
 
     if (elevations.length < 2) return 0;
 
-    // Smooth with a 10-point rolling average to kill GPS noise
-    const W = 10;
+    // Smooth with a 20-point rolling average to kill GPS noise
+    const W = 20;
     const smoothed = elevations.map((_, i) => {
       const start = Math.max(0, i - Math.floor(W / 2));
       const chunk = elevations.slice(start, start + W);
