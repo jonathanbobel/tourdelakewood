@@ -1,5 +1,5 @@
 {
   "redirects": [
-    { "source": "/results", "destination": "/leaderboard", "permanent": false }
+    { "source": "/leaderboard", "destination": "/results", "permanent": false }
   ]
 }

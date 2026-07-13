@@ -3,8 +3,8 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout
-  title="Results"
-  description="Tour de Lakewood 2026 results - submit your GPX after the July 11th ride to claim your leaderboard spot."
+  title="2026 Results"
+  description="Tour de Lakewood 2026 results - see who covered the most of Lakewood on July 11th."
 >
   <script is:inline slot="head" src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
 
@@ -13,9 +13,10 @@ import Layout from '../layouts/Layout.astro';
     <div class="hero-inner">
       <p class="eyebrow">Tour de Lakewood 2026</p>
       <h1 class="hero-h1">
-        Results<br />
-        <em>Board</em>
+        2026<br />
+        <em>Results</em>
       </h1>
+      <p class="hero-sub">The official results from July 11th. Submit your GPX to claim your spot.</p>
     </div>
   </section>
 
@@ -76,7 +77,7 @@ import Layout from '../layouts/Layout.astro';
       </div>
 
       <p class="section-tag">Submit Your Results</p>
-      
+
       <div class="submit-layout">
 
         <!-- Upload / analysis card -->
@@ -163,7 +164,7 @@ import Layout from '../layouts/Layout.astro';
   <!-- LEADERBOARD - unlocks July 11 8am alongside submit section -->
   <section id="leaderboard-section" class="results-live-section" style="display:none">
     <div class="container">
-      <p class="section-tag">2026 Leaderboard</p>
+      <p class="section-tag">2026 Results</p>
 
       <div id="lb-empty" class="lb-empty">
         <p class="lb-empty-msg">No results yet - be the first to submit your GPX above.</p>
@@ -506,22 +507,35 @@ import Layout from '../layouts/Layout.astro';
   }
 
   function calcElevationGainFt(trkpts) {
-    let gain = 0, prevEle = null, prevInside = false;
+    // Collect elevation values for points inside Lakewood only
+    const elevations = [];
     for (const pt of trkpts) {
       const lon = parseFloat(pt.getAttribute('lon'));
       const lat = parseFloat(pt.getAttribute('lat'));
       const inside = turf.booleanPointInPolygon(turf.point([lon, lat]), lakewoodBoundary);
+      if (!inside) continue;
       const eleEl = pt.querySelector('ele');
       if (!eleEl) continue;
       const ele = parseFloat(eleEl.textContent.trim());
-      if (isNaN(ele)) continue;
-      if (prevEle !== null && ele > prevEle && inside && prevInside) {
-        gain += (ele - prevEle);
-      }
-      prevEle = ele;
-      prevInside = inside;
+      if (!isNaN(ele)) elevations.push(ele);
     }
-    return gain * 3.28084; // metres → feet, Lakewood segments only
+
+    if (elevations.length < 2) return 0;
+
+    // Smooth with a 20-point rolling average to kill GPS noise
+    const W = 20;
+    const smoothed = elevations.map((_, i) => {
+      const start = Math.max(0, i - Math.floor(W / 2));
+      const chunk = elevations.slice(start, start + W);
+      return chunk.reduce((a, b) => a + b, 0) / chunk.length;
+    });
+
+    let gain = 0;
+    for (let i = 1; i < smoothed.length; i++) {
+      if (smoothed[i] > smoothed[i - 1]) gain += smoothed[i] - smoothed[i - 1];
+    }
+
+    return gain * 3.28084; // metres → feet
   }
 
   // ── UI state machine ──────────────────────────────────────────────────────
@@ -807,6 +821,7 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .hero-h1 em { font-style: normal; color: var(--yellow); }
+  .hero-sub { font-size: 1.05rem; line-height: 1.65; color: #ccc; max-width: 30rem; margin: 0.75rem 0 0; }
 
   /* ── TBD section ── */
   .tbd-section {
