@@ -4,13 +4,13 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout
   title="Tour de Lakewood"
-  description="The greatest 12-hour cycling event in Lakewood, Ohio. Free, self-guided, and open to all. July 11th, 2026."
+  description="The greatest 12-hour cycling event in Lakewood, Ohio. Free, self-guided, and open to all."
 >
   <!-- BLACK HERO -->
   <section class="hero">
     <div class="hero-inner">
       <div class="hero-left">
-        <p class="grand-depart">Grand Départ - July 11, 2026</p>
+        <p class="grand-depart">Tour de Lakewood</p>
         <h1 class="hero-h1">
           Tour<br />
           <em>de</em><br />
@@ -28,32 +28,10 @@ import Layout from '../layouts/Layout.astro';
 
       <div class="hero-right">
         <div class="countdown-card">
-          <p class="cd-eyebrow">Le Départ dans&hellip;</p>
-          <div class="countdown" aria-label="Countdown to July 11, 2026 at 8:00 AM">
-            <div class="cd-block">
-              <span class="cd-val" id="cd-days">00</span>
-              <span class="cd-unit">Days</span>
-            </div>
-            <span class="cd-sep" aria-hidden="true">:</span>
-            <div class="cd-block">
-              <span class="cd-val" id="cd-hours">00</span>
-              <span class="cd-unit">Hrs</span>
-            </div>
-            <span class="cd-sep" aria-hidden="true">:</span>
-            <div class="cd-block">
-              <span class="cd-val" id="cd-mins">00</span>
-              <span class="cd-unit">Min</span>
-            </div>
-            <span class="cd-sep" aria-hidden="true">:</span>
-            <div class="cd-block">
-              <span class="cd-val" id="cd-secs">00</span>
-              <span class="cd-unit">Sec</span>
-            </div>
-          </div>
+          <p class="cd-eyebrow">Thanks for riding with us.</p>
+          <p class="see-you">See you in<br /><strong>2027.</strong></p>
           <div class="cd-meta">
-            <div class="cd-meta-row">Saturday, July 11th, 2026</div>
-            <div class="cd-meta-row">8:00 AM &ndash; 8:00 PM Eastern</div>
-            <div class="cd-meta-row">Lakewood, Ohio (city-wide)</div>
+            <div class="cd-meta-row">Check back for next year&rsquo;s date.</div>
           </div>
         </div>
       </div>
@@ -68,8 +46,6 @@ import Layout from '../layouts/Layout.astro';
       <span>ALL SKILL LEVELS</span>
       <span class="t-dot">&middot;</span>
       <span>SELF-GUIDED</span>
-      <span class="t-dot">&middot;</span>
-      <span>JULY 11, 2026</span>
       <span class="t-dot">&middot;</span>
       <span>LAKEWOOD, OH</span>
       <span class="t-dot">&middot;</span>
@@ -307,6 +283,17 @@ import Layout from '../layouts/Layout.astro';
     font-style: italic;
     margin: 0 0 1rem;
   }
+
+  .see-you {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.05;
+    color: #fff;
+    text-transform: uppercase;
+    margin: 0 0 1.5rem;
+  }
+  .see-you strong { color: var(--yellow); display: block; font-size: 5rem; }
 
   .countdown {
     display: flex;
