@@ -16,7 +16,7 @@ import Layout from '../layouts/Layout.astro';
         2026<br />
         <em>Results</em>
       </h1>
-      <p class="hero-sub">The official results from July 11th. Submit your GPX to claim your spot.</p>
+      <p class="hero-sub">The official results from July 11th. Great job everyone!</p>
     </div>
   </section>
 
@@ -69,105 +69,13 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
-  <!-- SUBMIT RESULTS - unlocks July 11 8am (or ?preview for testing) -->
-  <section id="submit-section" class="submit-section" style="display:none">
-    <div class="container">
-      <div id="preview-banner" class="preview-banner" style="display:none">
-        Preview mode - results page is not yet live to the public.
-      </div>
-
-      <p class="section-tag">Submit Your Results</p>
-
-      <div class="submit-layout">
-
-        <!-- Upload / analysis card -->
-        <div class="upload-card">
-
-          <!-- drop zone (default visible state) -->
-          <div id="dropZone" class="drop-zone">
-            <div class="drop-icon-wrap">
-              <svg class="drop-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="17 8 12 3 7 8"/>
-                <line x1="12" y1="3" x2="12" y2="15"/>
-              </svg>
-            </div>
-            <p class="drop-label">Drop your GPX file here</p>
-            <p class="drop-hint">or click to upload &middot; one file</p>
-            <input type="file" id="fileInput" accept=".gpx" class="sr-only" />
-          </div>
-
-          <!-- processing -->
-          <div id="processingState" class="processing-state" style="display:none">
-            <div class="spinner"></div>
-            <p class="processing-text">Analyzing route&hellip;</p>
-            <p class="processing-sub" id="processingMsg">Loading road network&hellip;</p>
-          </div>
-
-          <!-- stats + submit form -->
-          <div id="statsState" class="stats-state" style="display:none">
-            <div class="stats-grid">
-              <div class="stat-item">
-                <div class="stat-val" id="stat-miles">-</div>
-                <div class="stat-lbl">Miles in Lakewood</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-val" id="stat-coverage">-</div>
-                <div class="stat-lbl">Road Coverage</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-val" id="stat-elevation">-</div>
-                <div class="stat-lbl">Elevation Gain</div>
-              </div>
-            </div>
-            <div class="name-form">
-              <label class="name-label" for="riderName">Your name for the leaderboard</label>
-              <input type="text" id="riderName" class="name-input" placeholder="e.g. Jon Bobel" maxlength="60" autocomplete="name" />
-              <button id="submitBtn" class="submit-btn">Post to Leaderboard &rarr;</button>
-              <button id="resetBtn" class="reset-link">Upload a different file</button>
-            </div>
-          </div>
-
-          <!-- success -->
-          <div id="successState" class="success-state" style="display:none">
-            <div class="success-icon-wrap">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="success-svg" aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-            </div>
-            <h3 class="success-title">Results submitted!</h3>
-            <p class="success-desc">Your results are on the leaderboard below.</p>
-            <button id="submitAnother" class="reset-link">Submit another</button>
-          </div>
-
-          <!-- error -->
-          <div id="errorState" class="error-state" style="display:none">
-            <p id="errorMsg" class="error-msg"></p>
-            <button id="retryBtn" class="reset-link">Try again</button>
-          </div>
-
-        </div>
-
-        <!-- info panel -->
-        <div class="submit-info">
-          <h3 class="info-title">How it works</h3>
-          <ol class="info-steps">
-            <li>Upload the GPX from your Strava, Garmin, or any GPS device</li>
-            <li>Your route is analyzed: miles inside Lakewood, road coverage %, and elevation gain</li>
-            <li>Enter your name and post to the leaderboard</li>
-          </ol>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- LEADERBOARD - unlocks July 11 8am alongside submit section -->
+  <!-- LEADERBOARD -->
   <section id="leaderboard-section" class="results-live-section" style="display:none">
     <div class="container">
       <p class="section-tag">2026 Results</p>
 
       <div id="lb-empty" class="lb-empty">
-        <p class="lb-empty-msg">No results yet - be the first to submit your GPX above.</p>
+        <p class="lb-empty-msg">No results yet.</p>
       </div>
 
       <div class="lb-grid" id="lb-grid" style="display:none">
@@ -208,22 +116,10 @@ import Layout from '../layouts/Layout.astro';
     ? createClient(SUPABASE_URL, SUPABASE_KEY)
     : null;
 
-  // ── Feature gate - opened July 10 2026 ──────────────────────────────────
-  const RACE_START_MS = new Date('2026-07-10T00:00:00-04:00').getTime();
-  const preview     = new URLSearchParams(location.search).has('preview');
-  const raceStarted = preview || Date.now() >= RACE_START_MS;
-
-  const tbdEl    = document.getElementById('tbd-section');
-  const submitEl = document.getElementById('submit-section');
-  const lbEl     = document.getElementById('leaderboard-section');
-  const prevBanner = document.getElementById('preview-banner');
-
-  if (raceStarted) {
-    if (tbdEl)    tbdEl.style.display    = 'none';
-    if (submitEl) submitEl.style.display = '';
-    if (lbEl)     lbEl.style.display     = '';
-  }
-  if (prevBanner && preview) prevBanner.style.display = '';
+  const tbdEl = document.getElementById('tbd-section');
+  const lbEl  = document.getElementById('leaderboard-section');
+  if (tbdEl) tbdEl.style.display = 'none';
+  if (lbEl)  lbEl.style.display  = '';
 
   // ── Lakewood boundary (same polygon as Route Analyzer) ───────────────────
   const lakewoodBoundary = {
@@ -758,28 +654,7 @@ import Layout from '../layouts/Layout.astro';
   }
 
   // ── Init ──────────────────────────────────────────────────────────────────
-  if (raceStarted) {
-    setState('upload');
-    loadLeaderboard();
-  } else {
-    // countdown timer for TBD section
-    const TARGET = new Date('2026-07-11T08:00:00-04:00').getTime();
-    const pad = n => String(n).padStart(2, '0');
-    const tick = () => {
-      const diff = Math.max(0, TARGET - Date.now());
-      const s    = Math.floor(diff / 1000);
-      const d  = document.getElementById('r-days');
-      const h  = document.getElementById('r-hours');
-      const m  = document.getElementById('r-mins');
-      const sc = document.getElementById('r-secs');
-      if (d)  d.textContent  = String(Math.floor(s / 86400));
-      if (h)  h.textContent  = pad(Math.floor((s % 86400) / 3600));
-      if (m)  m.textContent  = pad(Math.floor((s % 3600) / 60));
-      if (sc) sc.textContent = pad(s % 60);
-    };
-    tick();
-    setInterval(tick, 1000);
-  }
+  loadLeaderboard();
 </script>
 
 <style is:global>

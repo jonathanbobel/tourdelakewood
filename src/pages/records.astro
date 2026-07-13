@@ -63,7 +63,7 @@ import Layout from '../layouts/Layout.astro';
       <!-- Distance + Elevation side by side -->
       <div class="record-pair">
 
-        <div class="record-card record-card--light" data-countup data-target="117.96" data-decimals="2" data-id="dist-val">
+        <div class="record-card record-card--light" data-countup data-target="144.20" data-decimals="2" data-id="dist-val">
           <span class="rc-category">Total Distance</span>
           <div class="rc-holder-row">
             <span class="rc-crown" aria-hidden="true">&#9812;</span>
@@ -76,7 +76,7 @@ import Layout from '../layouts/Layout.astro';
           <p class="rc-note">Total distance ridden within Lakewood city limits</p>
         </div>
 
-        <div class="record-card record-card--light" data-countup data-target="4171" data-decimals="0" data-id="ele-val">
+        <div class="record-card record-card--light" data-countup data-target="3477" data-decimals="0" data-id="ele-val">
           <span class="rc-category">Elevation Gain</span>
           <div class="rc-holder-row">
             <span class="rc-crown" aria-hidden="true">&#9812;</span>
@@ -242,7 +242,7 @@ import Layout from '../layouts/Layout.astro';
     try {
       [net, coords] = await Promise.all([
         fetchRoads(),
-        fetch('/Tour_de_Lakewood.gpx').then(r => r.text()).then(parseGPX)
+        fetch('/Tour_de_Lakewood_2026_Nat.gpx').then(r => r.text()).then(parseGPX)
       ]);
     } catch (e) {
       document.getElementById('coverage-loading').style.display = 'none';
@@ -256,40 +256,8 @@ import Layout from '../layouts/Layout.astro';
       color: '#5F259F', weight: 3, opacity: 0.85
     }).addTo(map);
 
-    // Check if the expensive coverage analysis is cached
-    let pct;
-    try {
-      const c = JSON.parse(localStorage.getItem(COVERAGE_CACHE_K));
-      if (c && Date.now() - c.ts < CACHE_TTL) { pct = c.pct; }
-    } catch (_) {}
-
-    if (pct == null) {
-      // Run the coverage analysis (slow - cached after first run)
-      const buf     = turf.buffer(turf.lineString(coords), 0.025, { units: 'kilometers' });
-      const bufEdge = turf.polygonToLine(buf);
-      let coveredMiles = 0;
-      for (const road of net.features) {
-        if (!turf.booleanIntersects(road, buf)) continue;
-        let inside = 0;
-        try {
-          const split = turf.lineSplit(road, bufEdge);
-          const segs  = split.features.length > 0 ? split.features : [road];
-          for (const seg of segs) {
-            const len = turf.length(seg, { units: 'miles' });
-            if (!len) continue;
-            const mid = turf.along(seg, len / 2, { units: 'miles' });
-            if (turf.booleanPointInPolygon(mid, buf)) inside += len;
-          }
-        } catch (_) {
-          inside = turf.length(road, { units: 'miles' });
-        }
-        coveredMiles += inside;
-      }
-      pct = net.totalMiles > 0 ? Math.min(100, (coveredMiles / net.totalMiles) * 100) : 0;
-      try {
-        localStorage.setItem(COVERAGE_CACHE_K, JSON.stringify({ ts: Date.now(), pct }));
-      } catch (_) {}
-    }
+    // Coverage is the verified race-day submission value
+    const pct = 93.6;
 
     document.getElementById('coverage-loading').style.display = 'none';
     document.getElementById('coverage-stat').style.display = 'flex';
